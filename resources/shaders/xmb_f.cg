@@ -1,0 +1,8 @@
+float4 main(
+    uniform float4 wave_color,
+    float3 out_normal : TEXCOORD0
+) : COLOR {
+    float3 normal = normalize(out_normal);
+    float f = abs(dot(normal, float3(0.0f, 1.0f, 0.0f)));
+    return float4(wave_color.xyz, wave_color.w * f);
+}

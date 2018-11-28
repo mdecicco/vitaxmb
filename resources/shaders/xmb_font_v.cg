@@ -1,0 +1,18 @@
+#define pixel(x, y) vec2()
+
+float4 main(
+    float2 pos,
+    float2 coord,
+    float4 color,
+    float2 out out_coord : TEXCOORD0,
+    float4 out out_color : COLOR
+) : POSITION {
+    out_coord = coord;
+    out_color = color;
+    return float4(
+        ((pos.x / 960.0f) * 2.0f) - 1.0f,
+        1.0f - ((pos.y / 544.0f) * 2.0f),
+        0.5f,
+        1.f
+    );
+}

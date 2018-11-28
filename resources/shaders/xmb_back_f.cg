@@ -1,0 +1,8 @@
+float4 main(
+    float2 out_pos : TEXCOORD0,
+    uniform float4 c
+) : COLOR {
+    float a = (out_pos.y + 1.0f) / 2.0f;
+    float b = 0.3f + (abs(cos(a + 1.7f)) * 0.5f);
+    return float4(c.xyz * b, c.w);
+}

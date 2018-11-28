@@ -1,0 +1,8 @@
+float4 main(
+	float2 pos,
+	float2 coord,
+	float2 out out_coord : TEXCOORD0
+) : POSITION {
+	out_coord = coord;
+	return float4(pos, 0.5f, 1.f);
+}

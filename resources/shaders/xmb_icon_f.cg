@@ -1,0 +1,10 @@
+﻿float4 main(
+    float2 out_coord : TEXCOORD0,
+    uniform float alpha,
+    uniform sampler2D tex
+) : COLOR {
+    float4 color = tex2D(tex, out_coord);
+    color.a *= alpha;
+    if(color.a < 0.01) discard;
+    return color;
+}
