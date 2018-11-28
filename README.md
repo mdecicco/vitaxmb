@@ -15,9 +15,12 @@ This doesn't actually do anything yet, other than present you with an xmb-like i
 - Making icon sliding animation more responsive, and more similar to the PSP/PS3 XMB
 
 # Coming up
+- Making the application more data-oriented, for custom themes and custom menu items and such
 - Adding the 'tick' sound effect when moving through the XMB
 - Maybe finding the sound effect from the PSP that is played when there's an error
+- Slide-out options pane like the PSP has
 - USB/FTP menu item with option for which device to mount
+- Loading a list of vita/psp games and showing them in the XMB (with icons/backgrounds but probably not PMFs)
 - Figuring out how to start applications and make them return to this application
 - If the above works out, overriding the PS button and rendering the XMB over the current application like the PS3 does
 
