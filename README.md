@@ -63,3 +63,6 @@ cmake . (updates the makefile with the new compiled shaders that will be in `/bu
 `make ui` Only sends xmb icons to the device (from `/resources/icons`)
 
 `make us` Only sends compiled shaders to the device (from `/build`)
+
+# Thanks to:
+I'll do this later so I can do it properly. I'm busy now
