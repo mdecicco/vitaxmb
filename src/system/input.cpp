@@ -87,12 +87,6 @@ namespace v {
         old_ls *= (1.0f / old_ls_m);
         old_rs *= (1.0f / old_rs_m);
         
-        if (button(SCE_CTRL_CIRCLE)) {
-            printf("%f\n", ls_m);
-        }
-        
-        // clamp
-        //ls *= glm::min(0, glm::max())
         m_ls = ls;
         m_rs = rs;
         

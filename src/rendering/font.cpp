@@ -1,4 +1,5 @@
 #include <rendering/font.h>
+#include <rendering/8ssedt.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftoutln.h>
 #include <freetype/fttrigon.h>
@@ -29,7 +30,8 @@ namespace v {
         u16 pixelsPerPt = 220 / 72;
         u16 heightPx = pixelsPerPt * height;
         FT_Set_Char_Size(face, height * 64, height * 64, 220, 220);
-        u16 texSize = heightPx * 16;
+        u16 glyphSize = heightPx * 2;
+        u16 texSize = glyphSize * 16;
         f32 texSizeF = texSize;
         m_texture = new GxmTexture(texSize, texSize, SCE_GXM_TEXTURE_FORMAT_U8_RRRR, false, gpu->context());
         u8* tex = (u8*)m_texture->data();
@@ -51,17 +53,20 @@ namespace v {
                             if (bitmap.width > heightPx || bitmap.rows > heightPx) {
                                 printf("Glyph %c (%dx%d) taller than designated area (%dx%x)\n", ch, bitmap.width, bitmap.rows, heightPx, heightPx);
                             }
-                            u16 start_x = x * heightPx;
-                            u16 start_y = y * heightPx;
+                            u16 start_x = x * glyphSize;
+                            u16 start_y = y * glyphSize;
+                            u16 glyph_offset_x = heightPx - (bitmap.width / 2);
+                            u16 glyph_offset_y = heightPx - (bitmap.rows / 2);
                             m_glyphs[ch] = vec4(
                                 f32(start_x) / texSizeF, f32(start_y) / texSizeF,
-                                f32(start_x + bitmap.width) / texSizeF, f32(start_y + bitmap.rows) / texSizeF
+                                f32(start_x + glyphSize) / texSizeF, f32(start_y + glyphSize) / texSizeF
                             );
-                            m_glyphOffsets[ch] = vec2(bitmap_glyph->left, -bitmap_glyph->top);
+                            m_glyphOffsets[ch] = vec2(bitmap_glyph->left - glyph_offset_x, -bitmap_glyph->top - glyph_offset_y);
+                            m_glyphDimensions[ch] = vec2(bitmap.width, bitmap.rows);
                             for(u16 bx = 0;bx < bitmap.width;bx++) {
                                 for(u16 by = 0;by < bitmap.rows;by++) {
-                                    u32 px = start_x + bx;
-                                    u32 py = start_y + by;
+                                    u32 px = start_x + glyph_offset_x + bx;
+                                    u32 py = start_y + glyph_offset_y + by;
                                     tex[(py * texSize) + px] = bitmap.buffer[(by * bitmap.width) + bx];
                                 }
                             }
@@ -70,7 +75,8 @@ namespace v {
                 }
             }
         }
-        
+        printf("Generating SDF for font %s\n", font);
+        GenerateSDF_Bitmap(tex, texSize, texSize);
         
         FT_Done_Face(face);
         
@@ -81,12 +87,13 @@ namespace v {
     GxmFont::~GxmFont () {
     }
     
-    void GxmFont::print (const vec2& pos, const char* text, const vec4& color, f32 alignment) {
+    void GxmFont::print (const vec2& pos, const char* text, const vec4& color, f32 alignment, float smoothingBaseValue, float smoothingRadius) {
         u16 len = strlen(text);
         
         u16 pixelsPerPt = 220 / 72;
         u16 heightPx = pixelsPerPt * m_height;
-        u16 texSize = heightPx * 16;
+        u16 glyphSize = heightPx * 2;
+        u16 texSize = glyphSize * 16;
         vec2 cursor = pos;
         m_vertices->set_rw_position(0);
         m_indices->set_rw_position(0);
@@ -101,8 +108,8 @@ namespace v {
             vec2 tl_uv = vec2(glyphCoords.x, glyphCoords.y);
             vec2 br_uv = vec2(glyphCoords.z, glyphCoords.w);
             vec2 dims = (br_uv - tl_uv) * vec2(texSize, texSize);
-            vec2 o = m_glyphOffsets[ch];
-            textLength += dims.x;
+            vec2 realDims = m_glyphDimensions[ch];
+            textLength += m_glyphDimensions[ch].x;
         }
         align = textLength * alignment;
         for(u16 i = 0;i < len;i++) {
@@ -124,12 +131,13 @@ namespace v {
             m_indices->write<u16>((i * 4) + 1);
             m_indices->write<u16>((i * 4) + 2);
             m_indices->write<u16>((i * 4) + 3);
-            cursor.x += dims.x;
+            cursor.x += m_glyphDimensions[ch].x;
         }
         
         u16 indexCount = len * 6;
         m_shader->enable();
         m_shader->texture(0, m_texture);
+        m_shader->uniform2f("smoothingParams", vec2(smoothingBaseValue, smoothingRadius));
         m_shader->vertices(m_vertices->data());
         sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
         m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), indexCount);

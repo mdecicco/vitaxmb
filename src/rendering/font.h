@@ -32,7 +32,7 @@ namespace v {
             bool bad () const { return m_bad; }
             GxmTexture* texture () const { return m_texture; }
             void shader (GxmShader* shader) { m_shader = shader; }
-            void print (const vec2& pos, const char* text, const vec4& color, f32 alignment = TEXT_ALIGN_LEFT);
+            void print (const vec2& pos, const char* text, const vec4& color, f32 alignment = TEXT_ALIGN_LEFT, float smoothingBaseValue = 0.506165f, float smoothingRadius = 0.029744f);
 
         protected:
             u16 m_height;
@@ -42,6 +42,7 @@ namespace v {
             DeviceGpu* m_gpu;
             vec4 m_glyphs[256];
             vec2 m_glyphOffsets[256];
+            vec2 m_glyphDimensions[256];
             GxmBuffer* m_vertices;
             GxmBuffer* m_indices;
     };

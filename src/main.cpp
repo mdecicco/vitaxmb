@@ -16,7 +16,7 @@ using namespace v;
 #define ICON_POSITION_Y (544 * 0.25f)
 #define ICON_ACTIVE_OFFSET (960.0f * 0.2f)
 #define ICON_SLIDE_ANIM_DURATION 0.125f
-
+#define FONT_SIZE_PT 7.0f
 glm::vec3 hsv2rgb(const glm::vec3& in) {
     double      hh, p, q, t, ff;
     long        i;
@@ -189,12 +189,10 @@ class XmbCol {
         
         void shift (i8 direction) {
             m_lastRowIdx = m_rowIdx;
-            printf("%d + %d = %d\n", m_rowIdx, direction, m_rowIdx + direction);
             m_rowIdx += direction;
             if (m_rowIdx >= (i8)icons.size()) m_rowIdx = icons.size() - 1;
             else if (m_rowIdx < 0) m_rowIdx = 0;
             else m_slideAnimTime = ICON_SLIDE_ANIM_DURATION;
-            printf("now: %d\n", m_rowIdx);
         }
         
         bool active;
@@ -247,6 +245,7 @@ class Xmb : public InputReceiver {
                 m_fontShader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
                 m_fontShader->attribute("coord", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
                 m_fontShader->attribute("color", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 4);
+                m_fontShader->uniform("smoothingParams");
                 
                 SceGxmBlendInfo blend_info;
                 blend_info.colorMask = SCE_GXM_COLOR_MASK_ALL;
@@ -259,7 +258,7 @@ class Xmb : public InputReceiver {
                 m_fontShader->build(&blend_info);
             }
             
-            m_xmbFont = gpu->load_font("app0:/resources/fonts/ubuntu-r.ttf", 7.0f);
+            m_xmbFont = gpu->load_font("app0:/resources/fonts/ubuntu-r.ttf", FONT_SIZE_PT);
             if(m_xmbFont) m_xmbFont->shader(m_fontShader);
             
             xmb_icons[I_SETTINGS] = gpu->load_texture("app0:/resources/icons/settings300.png");
