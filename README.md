@@ -10,7 +10,7 @@ This doesn't actually do anything yet, other than present you with an xmb-like i
   - This will allow users to add custom .ttf fonts without having to deal with weird programs for rendering the SDF textures themselves
 - Improving icon appearance by:
   - Maybe finding or making SVG versions of each XMB icon
-  - Rendering the SVGs also as a signed distance field font
+  - Rendering the SVGs as a signed distance field font
   - Calculating shadows in the icon shaders rather than baking them into the images
 - Making icon sliding animation more responsive, and more similar to the PSP/PS3 XMB
 
