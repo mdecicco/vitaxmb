@@ -1,0 +1,117 @@
+{
+    "themes": [
+        {
+            "name": "default",
+            "color": {
+                "background": {
+                    "hue": 308.0,
+                    "saturation": 85.0,
+                    "lightness": 45.0
+                },
+                "wave": {
+                    "hue": 308.0,
+                    "saturation": 85.0,
+                    "lightness": 45.0
+                },
+                "font": {
+                    "hue": 0.0,
+                    "saturation": 0.0,
+                    "lightness": 100
+                }
+            },
+            "font": {
+                "file": "resources/fonts/ubuntu-r.ttf",
+                "shader": {
+                    "vertex": "resources/shaders/xmb_font_v.gxp",
+                    "fragment": "resources/shaders/xmb_font_f.gxp"
+                },
+                "size": 7.0,
+                "smoothing": {
+                    "base": 0.5,
+                    "epsilon": 0.004619
+                }
+            },
+            "icons": {
+                "spacing": 160,
+                "vertical_offset": 136,
+                "current_icon_horizontal_offset": 192,
+                "slide_animation_duration": 0.125
+            },
+            "wave": {
+                "enabled": true,
+                "speed": 0.065
+            }
+        }
+    ],
+    "theme": "default",
+    "icons": [
+        {
+            "name": "settings",
+            "file": "resources/icons/settings300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "camera",
+            "file": "resources/icons/photo300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "music",
+            "file": "resources/icons/musoc300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "movie",
+            "file": "resources/icons/movie300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "game",
+            "file": "resources/icons/game300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "network",
+            "file": "resources/icons/network300.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        },
+        {
+            "name": "user",
+            "file": "resources/icons/user350.png",
+            "scale": 0.3,
+            "offset": { "x": -138, "y": -145 }
+        }
+    ],
+    "columns": [
+        {
+            "label": "Settings",
+            "icon": "settings"
+        },
+        {
+            "label": "Photo",
+            "icon": "camera"
+        },
+        {
+            "label": "Music",
+            "icon": "music"
+        },
+        {
+            "label": "Movie",
+            "icon": "movie"
+        },
+        {
+            "label": "Game",
+            "icon": "game"
+        },
+        {
+            "label": "Network",
+            "icon": "network"
+        }
+    ]
+}

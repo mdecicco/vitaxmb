@@ -5,7 +5,7 @@
 
 
 void debugLogInit () {
-    debugNetInit("192.168.1.50", 1995, DEBUG);
+    debugNetInit("192.168.1.50", 1996, DEBUG);
 }
 
 void debugLog (const char* text, ...) {

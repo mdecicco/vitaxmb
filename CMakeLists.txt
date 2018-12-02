@@ -141,8 +141,8 @@ foreach(file ${CONFIG_FILES})
     list(APPEND RESOURCES ${file})
     list(APPEND RESOURCES resources/config/${filename})
     
-    list(APPEND FONT_CURL_COMMANDS "COMMAND")
-    list(APPEND FONT_CURL_COMMANDS curl -s -T ${file} ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/config/${filename})
+    list(APPEND CONFIG_CURL_COMMANDS "COMMAND")
+    list(APPEND CONFIG_CURL_COMMANDS curl -s -T ${file} ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/config/${filename})
 endforeach()
 
 vita_create_self(${SHORT_NAME}.self ${SHORT_NAME} UNSAFE)
@@ -177,6 +177,6 @@ add_custom_target(us
     COMMENT "Sending shaders to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/shaders/"
 )
 add_custom_target(m
-    COMMAND socat udp-recv:1995 stdout
+    COMMAND socat udp-recv:1996 stdout
     COMMENT "Listening for Vita..."
 )

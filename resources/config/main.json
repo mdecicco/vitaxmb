@@ -6,11 +6,6 @@
     "usb": {
         "device": "ux0"
     },
-    "theme": {
-        "hue": 308.0,
-        "saturation": 85.0,
-        "lightness": 45.0
-    },
     "debug": {
         "port": 1995
     }

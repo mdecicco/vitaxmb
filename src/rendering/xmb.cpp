@@ -6,9 +6,10 @@ namespace v {
     }
     xmbVertex::~xmbVertex() { }
 
-    XmbWave::XmbWave (u32 widthSegs, u32 lengthSegs, DeviceGpu* gpu) :
+    XmbWave::XmbWave (u32 widthSegs, u32 lengthSegs, DeviceGpu* gpu, theme_data* theme) :
         m_gpu(gpu), m_shader(NULL), m_indices(NULL), m_vertices(NULL), m_noise(time(NULL)),
-        m_width(widthSegs), m_length(lengthSegs), m_noise_x(0.0f), m_noise_y(0.0f)
+        m_width(widthSegs), m_length(lengthSegs), m_noise_x(0.0f), m_noise_y(0.0f),
+        m_theme(theme)
     {
         m_shader = m_gpu->load_shader("resources/shaders/xmb_v.gxp", "resources/shaders/xmb_f.gxp", sizeof(xmbVertex));
         if (m_shader) {
@@ -80,9 +81,8 @@ namespace v {
         f32 fl = f32(m_length) / frequency;
         return m_noise.octaveNoise0_1((x / fw) + m_noise_x, (z / fl) + m_noise_y, 2);
     }
-    void XmbWave::color (const glm::vec3& color) { m_waveColor = color; }
     void XmbWave::update (f32 dt) {
-        m_noise_x += 0.065f * dt;
+        m_noise_x += m_theme->wave_speed * dt;
         m_noise_y = sin(m_noise_x);
         
         xmbVertex* vertices = (xmbVertex*)m_vertices->data();
@@ -119,7 +119,7 @@ namespace v {
     void XmbWave::render () {
         m_shader->enable();
         m_shader->vertices(m_vertices->data());
-        m_shader->uniform4f("wave_color", glm::vec4(m_waveColor.x, m_waveColor.y, m_waveColor.z, 0.5f));
+        m_shader->uniform4f("wave_color", glm::vec4(m_theme->wave_color.x, m_theme->wave_color.y, m_theme->wave_color.z, 0.5f));
         sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
         m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), m_indexCount);
     }
