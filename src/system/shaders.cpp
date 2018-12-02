@@ -197,9 +197,12 @@ namespace v {
             return;
         }
         void *uniform_buffer;
-        if(param->second->isInVertexShader) sceGxmReserveVertexDefaultUniformBuffer(m_context->get(), &uniform_buffer);
-        else sceGxmReserveFragmentDefaultUniformBuffer(m_context->get(), &uniform_buffer);
-        sceGxmSetUniformDataF(uniform_buffer, param->second->ref, 0, 2, &v.x);
+        i32 err = 0;
+        if(param->second->isInVertexShader) err = sceGxmReserveVertexDefaultUniformBuffer(m_context->get(), &uniform_buffer);
+        else err = sceGxmReserveFragmentDefaultUniformBuffer(m_context->get(), &uniform_buffer);
+        if(err != 0) { printf("sceGxmReserve*DefaultUniformBuffer(0x%X, 0x%X): 0x%X\n", m_context->get(), &uniform_buffer, err); return; }
+        err = sceGxmSetUniformDataF(uniform_buffer, param->second->ref, 0, 2, &v.x);
+        if(err != 0) printf("sceGxmSetUniformDataF(0x%X, 0x%X, 0, 2, 0x%X): 0x%X\n", &uniform_buffer, param->second->ref, &v.x, err);
     }
     void GxmShader::uniform3f (const string& name, const vec3& v) {
         auto param = m_uniforms.find(name);

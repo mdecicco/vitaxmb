@@ -53,7 +53,6 @@ namespace v {
         
         u32 bpp = tex_format_to_bytespp(format);
         m_stride = ((m_width + 7) & ~7);
-        printf("Texture stride: %d bpp: %d\n", m_stride, bpp);
         
         u32 textureSz = m_width * m_height * bpp;
         m_buffer = new GxmBuffer(
@@ -63,7 +62,7 @@ namespace v {
         );
       	memset(m_buffer->data(), 0, textureSz);
         
-        printf("Texture size: %d bytes, ptr = 0x%X\n", textureSz, m_buffer->data());
+        printf("Texture stride: %d, bpp: %d, size: %d bytes, ptr: 0x%X\n", m_stride, bpp, textureSz, m_buffer->data());
         
         m_tex = new SceGxmTexture();
         u32 err = sceGxmTextureInitLinear(m_tex, m_buffer->data(), format, w, h, 0);

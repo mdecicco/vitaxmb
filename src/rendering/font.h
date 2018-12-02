@@ -26,23 +26,28 @@ namespace v {
     
     class GxmFont {
         public:
-            GxmFont (const char* font, u32 height, FT_Library freetype, DeviceGpu* gpu);
+            GxmFont (const char* font, u32 height, FT_Library freetype, float smoothingBaseValue, float smoothingRadius, DeviceGpu* gpu);
             ~GxmFont ();
             
             bool bad () const { return m_bad; }
             GxmTexture* texture () const { return m_texture; }
-            void shader (GxmShader* shader) { m_shader = shader; }
-            void print (const vec2& pos, const char* text, const vec4& color, f32 alignment = TEXT_ALIGN_LEFT, float smoothingBaseValue = 0.506165f, float smoothingRadius = 0.029744f);
+            void shader (GxmShader* shader);
+            void smoothing(float smoothingBaseValue, float smoothingRadius) { m_smoothingParams = vec2(smoothingBaseValue, smoothingRadius); }
+            void print (const vec2& pos, const char* text, const vec4& color, f32 alignment = TEXT_ALIGN_LEFT);
 
         protected:
             u16 m_height;
             bool m_bad;
+            u64 m_frameId;
+            u32 m_lastIndexOffset;
+            u32 m_lastVertexOffset;
             GxmTexture* m_texture;
             GxmShader* m_shader;
             DeviceGpu* m_gpu;
             vec4 m_glyphs[256];
             vec2 m_glyphOffsets[256];
             vec2 m_glyphDimensions[256];
+            vec2 m_smoothingParams;
             GxmBuffer* m_vertices;
             GxmBuffer* m_indices;
     };

@@ -7,9 +7,7 @@ namespace v {
             DeviceScreen();
             ~DeviceScreen();
             
-            void clear(unsigned int color = 0);
             void vblank();
-            int debug(const char* fmt, ...);
             
         protected:
     };

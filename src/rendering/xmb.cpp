@@ -10,7 +10,7 @@ namespace v {
         m_gpu(gpu), m_shader(NULL), m_indices(NULL), m_vertices(NULL), m_noise(time(NULL)),
         m_width(widthSegs), m_length(lengthSegs), m_noise_x(0.0f), m_noise_y(0.0f)
     {
-        m_shader = m_gpu->load_shader("app0:/resources/shaders/xmb_v.gxp", "app0:/resources/shaders/xmb_f.gxp", sizeof(xmbVertex));
+        m_shader = m_gpu->load_shader("resources/shaders/xmb_v.gxp", "resources/shaders/xmb_f.gxp", sizeof(xmbVertex));
         if (m_shader) {
             m_shader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 3);
             m_shader->attribute("normal", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 3);

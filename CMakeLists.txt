@@ -12,16 +12,16 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-set(SHORT_NAME shell)
+set(SHORT_NAME VitaXmb)
 project(${SHORT_NAME})
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
-set(VITA_APP_NAME "Shell")
+set(VITA_APP_NAME "VitaXmb")
 set(VITA_TITLEID  "SHELL6969")
 SET(PSVITAIP 192.168.1.16)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -Wno-psabi")
 set(PSP2CGC /usr/local/vitasdk/bin/psp2cgc.exe)
 
 include_directories(
@@ -61,6 +61,8 @@ file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     src/*.cpp
     src/system/*.cpp
     src/common/*.cpp
+    src/tools/*.cpp
+    src/rendering/*.cpp
 )
 
 add_executable(${SHORT_NAME}
@@ -70,16 +72,20 @@ add_executable(${SHORT_NAME}
 )
 
 target_link_libraries(${SHORT_NAME}
-    SceNetCtl_stub
-    SceNet_stub
-    SceSysmodule_stub
-    SceDisplay_stub
-    SceCtrl_stub
-    SceGxm_stub
-    freetype
     debugnet
-    vitaGL
+    freetype
     png
+    SceAppMgr_stub
+    SceAppUtil_stub
+    SceCtrl_stub
+    SceDisplay_stub
+    SceGxm_stub
+    SceNet_stub
+    SceNetCtl_stub
+    ScePower_stub
+    SceShellSvc_stub
+    SceSysmodule_stub
+    vitaGL
     z
 )
 
@@ -93,11 +99,15 @@ file(GLOB_RECURSE ICON_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 file(GLOB_RECURSE FONT_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
      resources/fonts/*.ttf
 )
+file(GLOB_RECURSE CONFIG_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+     resources/config/*.json
+)
 
 set(RESOURCES "")
 SET(FONT_CURL_COMMANDS "")
 SET(ICON_CURL_COMMANDS "")
 SET(SHADER_CURL_COMMANDS "")
+SET(CONFIG_CURL_COMMANDS "")
 foreach(file ${SHADER_FILES})
     get_filename_component(filename ${file} NAME)
     list(APPEND RESOURCES "FILE")
@@ -125,8 +135,17 @@ foreach(file ${FONT_FILES})
     list(APPEND FONT_CURL_COMMANDS "COMMAND")
     list(APPEND FONT_CURL_COMMANDS curl -s -T ${file} ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/fonts/${filename})
 endforeach()
+foreach(file ${CONFIG_FILES})
+    get_filename_component(filename ${file} NAME)
+    list(APPEND RESOURCES "FILE")
+    list(APPEND RESOURCES ${file})
+    list(APPEND RESOURCES resources/config/${filename})
+    
+    list(APPEND FONT_CURL_COMMANDS "COMMAND")
+    list(APPEND FONT_CURL_COMMANDS curl -s -T ${file} ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/config/${filename})
+endforeach()
 
-vita_create_self(${SHORT_NAME}.self ${SHORT_NAME})
+vita_create_self(${SHORT_NAME}.self ${SHORT_NAME} UNSAFE)
 vita_create_vpk(${SHORT_NAME}.vpk ${VITA_TITLEID} ${SHORT_NAME}.self
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
@@ -141,6 +160,10 @@ add_custom_target(u
   	COMMAND curl -s -T ${SHORT_NAME}.self ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/eboot.bin
     COMMENT "Sending ${SHORT_NAME}.self to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/eboot.bin"
 )
+add_custom_target(uc
+  	${CONFIG_CURL_COMMANDS}
+    COMMENT "Sending config files to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/config/"
+)
 add_custom_target(uf
     ${FONT_CURL_COMMANDS}
     COMMENT "Sending fonts to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/fonts/"
@@ -152,4 +175,8 @@ add_custom_target(ui
 add_custom_target(us
     ${SHADER_CURL_COMMANDS}
     COMMENT "Sending shaders to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/shaders/"
+)
+add_custom_target(m
+    COMMAND socat udp-recv:1995 stdout
+    COMMENT "Listening for Vita..."
 )

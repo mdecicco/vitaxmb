@@ -2,7 +2,7 @@
 #include <system/gpu_utils.h>
 #include <common/debugLog.h>
 #include <common/png.h>
-
+#include <system/device.h>
 #define printf debugLog
 #define FROM_FULL(r,g,b ) ((255<<24) | (int(r)<<16) | (int(g)<<8) | int(b))
 
@@ -97,8 +97,8 @@ namespace v {
     }
     
     
-    DeviceGpu::DeviceGpu () :
-        m_clearColor(0), m_context(nullptr), m_backBufferIndex(0), m_frontBufferIndex(0)
+    DeviceGpu::DeviceGpu (Device* dev) :
+        m_clearColor(0), m_context(nullptr), m_backBufferIndex(0), m_frontBufferIndex(0), m_frameId(0), m_device(dev)
     {
         printf("Initializing Gxm\n");
         SceGxmInitializeParams initializeParams;
@@ -120,7 +120,7 @@ namespace v {
         m_depthStencil = new GxmDepthStencilBuffer(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_STRIDE_IN_PIXELS, m_context);
         m_patcher = new GxmShaderPatcher(64 * 1024, 64 * 1024, 64 * 1024);
         
-        m_clearShader = load_shader("app0:/resources/shaders/clear_v.gxp", "app0:/resources/shaders/clear_f.gxp", sizeof(clear_vertex));
+        m_clearShader = load_shader("resources/shaders/clear_v.gxp", "resources/shaders/clear_f.gxp", sizeof(clear_vertex));
         if (m_clearShader) {
             m_clearShader->attribute("p", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
             m_clearShader->uniform("c");
@@ -187,6 +187,7 @@ namespace v {
         );
         //printf("sceGxmPadHeartbeat(): 0x%X\n", err);
         swap_buffers();
+        m_frameId++;
     }
     void DeviceGpu::swap_buffers () {
         display_data d;
@@ -232,29 +233,23 @@ namespace v {
         }
     }
     GxmShader* DeviceGpu::load_shader (const char* vertex, const char* fragment, u32 vertexSize) {
-        FILE* fp = fopen(vertex, "rb");
+        File* fp = m_device->open_file(vertex, "rb");
         if(!fp) return NULL;
         
-        fseek(fp, 0, SEEK_END);
-        size_t sz = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-        u8* vertData = new u8[sz + 1];
-        fread(vertData, 1, sz, fp);
-        vertData[sz] = 0;
-        fclose(fp);
-        printf("Loaded %s (0x%X, %d bytes)\n", vertex, vertData, sz);
+        u8* vertData = new u8[fp->size() + 1];
+        fp->read(vertData, fp->size());
+        vertData[fp->size()] = 0;
+        delete fp;
+        printf("Loaded %s (0x%X, %d bytes)\n", vertex, vertData, fp->size());
         
-        fp = fopen(fragment, "rb");
-        if(!fp) return NULL;
+        fp = m_device->open_file(fragment, "rb");
+        if(!fp) { delete [] vertData; return NULL; }
         
-        fseek(fp, 0, SEEK_END);
-        sz = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-        u8* fragData = new u8[sz + 1];
-        fread(fragData, 1, sz, fp);
-        fragData[sz] = 0;
-        fclose(fp);
-        printf("Loaded %s (0x%X, %d bytes)\n", fragment, fragData, sz);
+        u8* fragData = new u8[fp->size() + 1];
+        fp->read(fragData, fp->size());
+        fragData[fp->size()] = 0;
+        delete fp;
+        printf("Loaded %s (0x%X, %d bytes)\n", fragment, fragData, fp->size());
         
         GxmShader* s = new GxmShader(m_context, m_patcher, (SceGxmProgram*)vertData, (SceGxmProgram*)fragData, vertexSize);
         if(s->bad()) { delete s; s = NULL; }
@@ -262,13 +257,13 @@ namespace v {
         return s;
     }
     GxmTexture* DeviceGpu::load_texture (const char* pngFile) {
-        GxmTexture* t = load_png(pngFile, m_context);
+        GxmTexture* t = load_png(pngFile, m_device);
         if(t) printf("Loaded %s\n", pngFile);
         else printf("Failed to load %s\n", pngFile);
         return t;
     }
-    GxmFont* DeviceGpu::load_font (const char* ttfFile, u32 height) {
-          GxmFont* f = new GxmFont(ttfFile, height, m_freetype, this);
+    GxmFont* DeviceGpu::load_font (const char* ttfFile, u32 height, float smoothingBaseValue, float smoothingRadius) {
+          GxmFont* f = new GxmFont(ttfFile, height, m_freetype, smoothingBaseValue, smoothingRadius, this);
           if(f->bad()) {
               delete f;
               return NULL;

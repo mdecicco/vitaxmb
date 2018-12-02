@@ -74,6 +74,9 @@ glm::vec3 hsv2rgb(const glm::vec3& in) {
     return out;     
 }
 
+vec2 smoothingParams = vec2(0.5f, 0.004619f);
+vec2 smoothingParamsOffset = vec2(0.0f, 0.0f);
+
 GxmTexture* xmb_icons[] = {
     NULL,
     NULL,
@@ -183,7 +186,7 @@ class XmbCol {
         
         void render () {
             m_icon->render();
-            if(active) m_font->print(m_icon->position + vec2(0.0f, 45.0f), m_text, vec4(1, 1, 1, opacity), TEXT_ALIGN_CENTER);
+            m_font->print(m_icon->position + vec2(0.0f, 45.0f), m_text, vec4(1, 1, 1, opacity), TEXT_ALIGN_CENTER);
             if(active) for(auto i = icons.begin();i != icons.end();i++) (*i)->render();
         }
         
@@ -215,7 +218,7 @@ class XmbCol {
 class Xmb : public InputReceiver {
     public:
         Xmb (DeviceGpu* gpu) : m_gpu(gpu), m_colIdx(0), m_lastColIdx(0) {
-            m_bgShader = gpu->load_shader("app0:/resources/shaders/xmb_back_v.gxp", "app0:/resources/shaders/xmb_back_f.gxp", sizeof(f32) * 2);
+            m_bgShader = gpu->load_shader("resources/shaders/xmb_back_v.gxp", "resources/shaders/xmb_back_f.gxp", sizeof(f32) * 2);
             if(m_bgShader) {
                 m_bgShader->attribute("p", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
                 m_bgShader->uniform("c");
@@ -223,7 +226,7 @@ class Xmb : public InputReceiver {
                 gpu->set_clear_shader(m_bgShader);
             }
             
-            m_iconShader = gpu->load_shader("app0:/resources/shaders/xmb_icon_v.gxp","app0:/resources/shaders/xmb_icon_f.gxp", sizeof(xmbIconVertex));
+            m_iconShader = gpu->load_shader("resources/shaders/xmb_icon_v.gxp","resources/shaders/xmb_icon_f.gxp", sizeof(xmbIconVertex));
             if(m_iconShader) {
                 m_iconShader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
                 m_iconShader->attribute("coord", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
@@ -240,7 +243,7 @@ class Xmb : public InputReceiver {
                 m_iconShader->build(&blend_info);
             }
             
-            m_fontShader = gpu->load_shader("app0:/resources/shaders/xmb_font_v.gxp","app0:/resources/shaders/xmb_font_f.gxp", sizeof(fontVertex));
+            m_fontShader = gpu->load_shader("resources/shaders/xmb_font_v.gxp","resources/shaders/xmb_font_f.gxp", sizeof(fontVertex));
             if(m_fontShader) {
                 m_fontShader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
                 m_fontShader->attribute("coord", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
@@ -258,16 +261,16 @@ class Xmb : public InputReceiver {
                 m_fontShader->build(&blend_info);
             }
             
-            m_xmbFont = gpu->load_font("app0:/resources/fonts/ubuntu-r.ttf", FONT_SIZE_PT);
+            m_xmbFont = gpu->load_font("resources/fonts/ubuntu-r.ttf", FONT_SIZE_PT);
             if(m_xmbFont) m_xmbFont->shader(m_fontShader);
             
-            xmb_icons[I_SETTINGS] = gpu->load_texture("app0:/resources/icons/settings300.png");
-            xmb_icons[I_PHOTO] = gpu->load_texture("app0:/resources/icons/photo300.png");
-            xmb_icons[I_MUSIC] = gpu->load_texture("app0:/resources/icons/music300.png");
-            xmb_icons[I_MOVIE] = gpu->load_texture("app0:/resources/icons/movie300.png");
-            xmb_icons[I_GAME] = gpu->load_texture("app0:/resources/icons/game300.png");
-            xmb_icons[I_NETWORK] = gpu->load_texture("app0:/resources/icons/network300.png");
-            xmb_icons[I_USER] = gpu->load_texture("app0:/resources/icons/user350.png");
+            xmb_icons[I_SETTINGS] = gpu->load_texture("resources/icons/settings300.png");
+            xmb_icons[I_PHOTO] = gpu->load_texture("resources/icons/photo300.png");
+            xmb_icons[I_MUSIC] = gpu->load_texture("resources/icons/music300.png");
+            xmb_icons[I_MOVIE] = gpu->load_texture("resources/icons/movie300.png");
+            xmb_icons[I_GAME] = gpu->load_texture("resources/icons/game300.png");
+            xmb_icons[I_NETWORK] = gpu->load_texture("resources/icons/network300.png");
+            xmb_icons[I_USER] = gpu->load_texture("resources/icons/user350.png");
             
             m_wave = new XmbWave(20, 20, gpu);
             m_cols[0] = new XmbCol(0, xmb_icons[I_SETTINGS], 0.3f, vec2(-138.0f, -145.0f), "Settings", m_xmbFont, m_iconShader, gpu);
@@ -316,6 +319,7 @@ class Xmb : public InputReceiver {
         }
         
         void render () {
+            m_xmbFont->smoothing(smoothingParams.x + smoothingParamsOffset.x, smoothingParams.y + smoothingParamsOffset.y);
             m_wave->render();
             for(u8 c = 0;c < 6;c++) {
                 m_cols[c]->render();
@@ -356,10 +360,13 @@ class Xmb : public InputReceiver {
 class Application {
     public:
         Application (const vector<string>& Arguments) {
+            for(u32 i = 0;i < Arguments.size();i++) {
+                printf("Arg %d: %s\n", i, Arguments[i].c_str());
+            }
         }
         
         ~Application () {
-            printf("Exiting...");
+            printf("Exiting...\n");
         }
         
         int run () {
@@ -369,6 +376,7 @@ class Application {
             f32 lastTime = m_device.time();
             f32 fps = 0.0f;
             f32 dt = 0.0f;
+            printf("Starting loop\n");
             while(!m_device.input().button(SCE_CTRL_TRIANGLE)) {
                 f32 curTime = m_device.time();
                 dt = curTime - lastTime;
@@ -378,9 +386,19 @@ class Application {
                 m_device.input().scan();
                 glm::vec2 lStick = m_device.input().left_stick();
                 glm::vec2 rStick = m_device.input().right_stick();
-                f32 hue = atan2(lStick.x, lStick.y) * (180.0f / 3.141592653f);
-                glm::vec3 theme = hsv2rgb(glm::vec3(hue, rStick.x, rStick.y));
-                xmb->color(theme);
+                
+                if(m_device.input().button(SCE_CTRL_RTRIGGER)) {
+                    f32 hue = atan2(lStick.x, lStick.y) * (180.0f / 3.141592653f);
+                    glm::vec3 theme = hsv2rgb(glm::vec3(hue, rStick.x, rStick.y));
+                    xmb->color(theme);
+                } else if(m_device.input().button(SCE_CTRL_LTRIGGER)) {
+                    smoothingParamsOffset.x = (lStick.y - 0.5f) * 0.1f;
+                    smoothingParamsOffset.y = (rStick.y - 0.5f) * 0.1f;
+                    printf("p: %f, %f\n", smoothingParams.x + smoothingParamsOffset.x, smoothingParams.y + smoothingParamsOffset.y);
+                } else if(m_device.input().button(SCE_CTRL_SQUARE)) {
+                    smoothingParams.y = lStick.y;
+                    printf("p: %f, %f\n", smoothingParams.x + smoothingParamsOffset.x, smoothingParams.y + smoothingParamsOffset.y);
+                }
                 
                 m_device.gpu().begin_frame();
                 m_device.gpu().clear_screen();
