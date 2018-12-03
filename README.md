@@ -67,9 +67,14 @@ cmake . (updates the makefile with the new compiled shaders that will be in `/bu
 
 # Thanks to:
 xerpi - libvita2d, gxmfun (reference material)
+
 other libvita2d contributors - libvita2d (reference material)
+
 FirebirdTA01 - Vita3D_Sample_cpp (reference material)
+
 poly04 - libvita3d (reference material)
+
 Rinnegatamante - vitaGL (reference material)
+
 Everyone who worked to provide people with the ability to make PS Vita applications
 
