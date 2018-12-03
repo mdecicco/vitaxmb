@@ -139,6 +139,16 @@ namespace v {
             m_clearVertices->write(clear_vertex( 1.0f,  1.0f));
         }
         
+        m_drawShader = load_shader("resources/shaders/debug_draw_v.gxp", "resources/shaders/debug_draw_f.gxp", sizeof(clear_vertex));
+        if (m_drawShader) {
+            m_drawShader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
+            m_drawShader->uniform("c");
+            m_drawShader->build();
+            m_drawVertices = new GxmBuffer(512 * sizeof(clear_vertex));
+            m_drawIndices = new GxmBuffer(1024 * sizeof(u16));
+            m_currentDrawIndexOffset = 0;
+            m_currentDrawVertexOffset = 0;
+        }
         FT_Init_FreeType(&m_freetype);
     }
     DeviceGpu::~DeviceGpu () {
@@ -147,6 +157,11 @@ namespace v {
             delete m_clearVertices;
             delete m_clearIndices;
             delete m_clearShader;
+        }
+        if(m_drawShader) {
+            delete m_drawVertices;
+            delete m_drawIndices;
+            delete m_drawShader;
         }
         delete m_patcher;
         delete m_depthStencil;
@@ -178,6 +193,55 @@ namespace v {
         int err = sceGxmDraw(m_context->get(), ptype, itype, indices, indexCount);
         //printf("sceGxmDraw(): 0x%X\n", err);
     }
+    void DeviceGpu::draw_line(const vec2& p0, const vec2& p1, const vec4& color) {
+        if(m_drawShader) {
+            m_drawVertices->set_rw_position(m_currentDrawVertexOffset);
+            m_drawIndices->set_rw_position(m_currentDrawIndexOffset);
+            m_drawVertices->write(clear_vertex(p0.x, p0.y));
+            m_drawVertices->write(clear_vertex(p1.x, p1.y));
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 0);
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 1);
+            m_drawShader->enable();
+            m_drawShader->uniform4f("c", color);
+            m_drawShader->vertices(m_drawVertices->data());
+            sceGxmSetFrontPolygonMode(m_context->get(), SCE_GXM_POLYGON_MODE_LINE);
+            render(
+                SCE_GXM_PRIMITIVE_LINES,
+                SCE_GXM_INDEX_FORMAT_U16,
+                ((u8*)m_drawIndices->data()) + m_currentDrawIndexOffset,
+                2
+            );
+            sceGxmSetFrontPolygonMode(m_context->get(), SCE_GXM_POLYGON_MODE_TRIANGLE_FILL);
+            m_currentDrawIndexOffset += 2 * sizeof(u16);
+            m_currentDrawVertexOffset += 2 * sizeof(clear_vertex);
+        }
+    }
+    void DeviceGpu::draw_point(const vec2& p0, f32 point_size, const vec4& color) {
+        if(m_drawShader) {
+            m_drawVertices->set_rw_position(m_currentDrawVertexOffset);
+            m_drawIndices->set_rw_position(m_currentDrawIndexOffset);
+            f32 half_point_size = point_size * 0.5f;
+            m_drawVertices->write(clear_vertex(p0.x - half_point_size, p0.y - half_point_size));
+            m_drawVertices->write(clear_vertex(p0.x + half_point_size, p0.y - half_point_size));
+            m_drawVertices->write(clear_vertex(p0.x - half_point_size, p0.y + half_point_size));
+            m_drawVertices->write(clear_vertex(p0.x + half_point_size, p0.y + half_point_size));
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 0);
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 1);
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 2);
+            m_drawIndices->write<u16>((m_currentDrawVertexOffset / sizeof(clear_vertex)) + 3);
+            m_drawShader->enable();
+            m_drawShader->uniform4f("c", color);
+            m_drawShader->vertices(m_drawVertices->data());
+            render(
+                SCE_GXM_PRIMITIVE_TRIANGLE_STRIP,
+                SCE_GXM_INDEX_FORMAT_U16,
+                ((u8*)m_drawIndices->data()) + m_currentDrawIndexOffset,
+                4
+            );
+            m_currentDrawIndexOffset += 4 * sizeof(u16);
+            m_currentDrawVertexOffset += 4 * sizeof(clear_vertex);
+        }
+    }
     void DeviceGpu::end_frame () {
         int err = sceGxmEndScene(m_context->get(), NULL, NULL);
         //printf("sceGxmEndScene(): 0x%X\n", err);
@@ -188,6 +252,10 @@ namespace v {
         //printf("sceGxmPadHeartbeat(): 0x%X\n", err);
         swap_buffers();
         m_frameId++;
+        if(m_drawShader) {
+            m_currentDrawIndexOffset = 0;
+            m_currentDrawVertexOffset = 0;
+        }
     }
     void DeviceGpu::swap_buffers () {
         display_data d;

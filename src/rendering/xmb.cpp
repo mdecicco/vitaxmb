@@ -1,6 +1,49 @@
 #include <rendering/xmb.h>
 
 namespace v {
+    vec3 hsl(const vec3& in) {
+        float fR, fG, fB;
+        float fH = in.x, fS = in.y * 0.01f, fV = in.z * 0.01f;
+        float fC = fV * fS; // Chroma
+        float fHPrime = fmod(fH / 60.0, 6);
+        float fX = fC * (1 - fabs(fmod(fHPrime, 2) - 1));
+        float fM = fV - fC;
+
+        if(0 <= fHPrime && fHPrime < 1) {
+            fR = fC;
+            fG = fX;
+            fB = 0;
+        } else if(1 <= fHPrime && fHPrime < 2) {
+            fR = fX;
+            fG = fC;
+            fB = 0;
+        } else if(2 <= fHPrime && fHPrime < 3) {
+            fR = 0;
+            fG = fC;
+            fB = fX;
+        } else if(3 <= fHPrime && fHPrime < 4) {
+            fR = 0;
+            fG = fX;
+            fB = fC;
+        } else if(4 <= fHPrime && fHPrime < 5) {
+            fR = fX;
+            fG = 0;
+            fB = fC;
+        } else if(5 <= fHPrime && fHPrime < 6) {
+            fR = fC;
+            fG = 0;
+            fB = fX;
+        } else {
+            fR = 0;
+            fG = 0;
+            fB = 0;
+        }
+
+        fR += fM;
+        fG += fM;
+        fB += fM;
+        return vec3(fR, fG, fB);
+    }
     xmbVertex::xmbVertex (f32 _x, f32 _y, f32 _z, f32 _nx, f32 _ny, f32 _nz) :
         x(_x), y(_y), z(_z), nx(_nx), ny(_ny), nz(_nz) {
     }
@@ -117,9 +160,10 @@ namespace v {
     }
     
     void XmbWave::render () {
+        vec3 c = hsl(m_theme->wave_color);
         m_shader->enable();
         m_shader->vertices(m_vertices->data());
-        m_shader->uniform4f("wave_color", glm::vec4(m_theme->wave_color.x, m_theme->wave_color.y, m_theme->wave_color.z, 0.5f));
+        m_shader->uniform4f("wave_color", vec4(c.x, c.y, c.z, 0.5f));
         sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
         m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), m_indexCount);
     }

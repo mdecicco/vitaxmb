@@ -7,6 +7,7 @@
 using namespace std;
 
 #include <system/device.h>
+#include <rendering/xmb.h>
 
 namespace v {
     typedef struct xmbIconVertex {
@@ -19,11 +20,14 @@ namespace v {
     
     class XmbIcon {
         public:
-            XmbIcon (GxmTexture* texture, f32 scale, const vec2& offset, DeviceGpu* gpu, GxmShader* shader);
+            XmbIcon (GxmTexture* texture, f32 scale, const vec2& offset, DeviceGpu* gpu, GxmShader* shader, theme_data* theme);
             ~XmbIcon ();
             
             void update (f32 dt);
             void render ();
+            GxmTexture* texture () const { return m_texture; }
+            f32 scale () const { return m_scale; }
+            vec2 offset () const { return m_offset; }
             
             vec2 position;
             f32 opacity;
@@ -37,5 +41,6 @@ namespace v {
             GxmBuffer* m_vertices;
             GxmShader* m_shader;
             GxmTexture* m_texture;
+            theme_data* m_theme;
     };
 };

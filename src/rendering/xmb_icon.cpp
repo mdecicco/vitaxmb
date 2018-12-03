@@ -1,4 +1,6 @@
 #include <rendering/xmb_icon.h>
+#include <common/debugLog.h>
+#define printf debugLog
 #define DISPLAY_WIDTH             960
 #define DISPLAY_HEIGHT            544
 #define X_FAC(x) ((x) / DISPLAY_WIDTH)
@@ -8,8 +10,9 @@
 namespace v {
     xmbIconVertex::xmbIconVertex (const vec2& pos, const vec2& coord) : x(pos.x), y(pos.y), u(coord.x), v(coord.y) { }
     xmbIconVertex::~xmbIconVertex () { }
-    XmbIcon::XmbIcon (GxmTexture* texture, f32 scale, const vec2& offset, DeviceGpu* gpu, GxmShader* shader) :
-        m_shader(shader), m_gpu(gpu), m_scale(scale), m_offset(offset), opacity(1.0f), m_texture(texture)
+    XmbIcon::XmbIcon (GxmTexture* texture, f32 scale, const vec2& offset, DeviceGpu* gpu, GxmShader* shader, theme_data* theme) :
+        m_shader(shader), m_gpu(gpu), m_scale(scale), m_offset(offset), opacity(1.0f),
+        m_texture(texture), m_theme(theme)
     {        
         m_indices = new GxmBuffer(4 * sizeof(u16));
         m_indices->write((u16)0);
@@ -53,5 +56,21 @@ namespace v {
         m_shader->uniform1f("alpha", opacity);
         sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
         m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), 4);
+        
+        if(m_theme->show_icon_alignment_point) {
+            m_gpu->draw_point(position, 5.0f, vec4(0, 0, 1, 1));
+        }
+        
+        if(m_theme->show_icon_outlines) {
+            vec2 sz = m_texture->size();
+            vec2 tl = vec2(position.x + (m_offset.x * m_scale), position.y + (m_offset.y * m_scale));
+            vec2 br = vec2(position.x + (m_offset.x * m_scale) + (sz.x * m_scale), position.y + (m_offset.y * m_scale) + (sz.y * m_scale));
+            m_gpu->draw_line(tl, vec2(br.x, tl.y), vec4(1,0,0,1));
+            m_gpu->draw_line(vec2(br.x, tl.y), br, vec4(1,0,0,1));
+            m_gpu->draw_line(br, vec2(tl.x, br.y), vec4(1,0,0,1));
+            m_gpu->draw_line(vec2(tl.x, br.y), tl, vec4(1,0,0,1));
+            m_gpu->draw_point(tl, 5.0f, vec4(1, 0, 0, 1));
+            m_gpu->draw_point(br, 5.0f, vec4(1, 0, 0, 1));
+        }
     }
 };

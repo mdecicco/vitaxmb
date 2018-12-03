@@ -1,0 +1,8 @@
+float4 main(float2 pos) : POSITION {
+    return float4(
+        ((pos.x / 960.0f) * 2.0f) - 1.0f,
+        1.0f - ((pos.y / 544.0f) * 2.0f),
+        0.5f,
+        1.f
+    );
+}

@@ -10,10 +10,14 @@ using namespace std;
 #include <tools/perlin.hpp>
 
 namespace v {
+    vec3 hsl(const vec3& in);
     class GxmFont;
     class GxmShader;
     typedef struct theme_data {
         bool wave_enabled;
+        bool show_icon_alignment_point;
+        bool show_text_alignment_point;
+        bool show_icon_outlines;
         f32 wave_speed;
         f32 font_size;
         f32 font_smoothing_base;
@@ -21,6 +25,7 @@ namespace v {
         f32 icon_spacing;
         f32 slide_animation_duration;
         vec2 icon_offset;
+        vec2 font_column_icon_offset;
         vec3 background_color;
         vec3 wave_color;
         vec3 font_color;

@@ -14,13 +14,13 @@
                     "lightness": 45.0
                 },
                 "font": {
-                    "hue": 0.0,
-                    "saturation": 0.0,
+                    "hue": 0,
+                    "saturation": 0,
                     "lightness": 100
                 }
             },
             "font": {
-                "file": "resources/fonts/ubuntu-r.ttf",
+                "file": "resources/fonts/SQR721N.ttf",
                 "shader": {
                     "vertex": "resources/shaders/xmb_font_v.gxp",
                     "fragment": "resources/shaders/xmb_font_f.gxp"
@@ -29,6 +29,10 @@
                 "smoothing": {
                     "base": 0.5,
                     "epsilon": 0.004619
+                },
+                "column_icon_offset": {
+                    "x": 130,
+                    "y": 0
                 }
             },
             "icons": {
@@ -36,6 +40,11 @@
                 "vertical_offset": 136,
                 "current_icon_horizontal_offset": 192,
                 "slide_animation_duration": 0.125
+            },
+            "debug": {
+                "show_icon_alignment_point": false,
+                "show_text_alignment_point": false,
+                "show_icon_outlines": false
             },
             "wave": {
                 "enabled": true,
@@ -47,71 +56,181 @@
     "icons": [
         {
             "name": "settings",
-            "file": "resources/icons/settings300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/settings300.png"
         },
         {
             "name": "camera",
-            "file": "resources/icons/photo300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/photo300.png"
         },
         {
             "name": "music",
-            "file": "resources/icons/musoc300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/music300.png"
         },
         {
             "name": "movie",
-            "file": "resources/icons/movie300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/movie300.png"
         },
         {
             "name": "game",
-            "file": "resources/icons/game300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/game300.png"
         },
         {
             "name": "network",
-            "file": "resources/icons/network300.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/network300.png"
         },
         {
             "name": "user",
-            "file": "resources/icons/user350.png",
-            "scale": 0.3,
-            "offset": { "x": -138, "y": -145 }
+            "file": "resources/icons/user350.png"
+        },
+        {
+            "name": "usb",
+            "file": "resources/icons/usb450.png"
         }
     ],
     "columns": [
         {
             "label": "Settings",
-            "icon": "settings"
+            "icon": {
+                "name": "settings",
+                "scale": 0.3,
+                "offset": { "x": -138, "y": -145 }
+            },
+            "items": [
+                {
+                    "label": "USB Connection",
+                    "icon": {
+                        "name": "usb",
+                        "scale": 0.25,
+                        "offset": { "x": -254, "y": -132 }
+                    },
+                    "options": [
+                        {
+                            "label": "ux0",
+                            "action": "connect_usb_ux0"
+                        },
+                        {
+                            "label": "ur0",
+                            "action": "connect_usb_ur0"
+                        }
+                    ]
+                },
+                {
+                    "label": "dummy 1",
+                    "description": "dummy text dummy text dummy text dummy text",
+                    "icon": {
+                        "name": "user",
+                        "scale": 0.2,
+                        "offset": { "x": -149, "y": -120 }
+                    },
+                    "items": [
+                        {
+                            "label": "dummy 1",
+                            "description": "dummy text dummy text dummy text dummy text",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "items": [
+                                {
+                                    "label": "Sub-item 1",
+                                    "description": "dummy text dummy text dummy text dummy text",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Sub-item 2",
+                                    "description": "dummy text dummy text dummy text dummy text",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Sub-item 1",
+                            "description": "dummy text dummy text dummy text dummy text",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Sub-item 2",
+                            "description": "dummy text dummy text dummy text dummy text",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "label": "dummy 2",
+                    "description": "dummy text dummy text dummy text dummy text",
+                    "icon": {
+                        "name": "user",
+                        "scale": 0.2,
+                        "offset": { "x": -149, "y": -120 }
+                    }
+                },
+                {
+                    "label": "dummy 3",
+                    "description": "dummy text dummy text dummy text dummy text",
+                    "icon": {
+                        "name": "user",
+                        "scale": 0.2,
+                        "offset": { "x": -149, "y": -120 }
+                    }
+                }
+            ]
         },
         {
             "label": "Photo",
-            "icon": "camera"
+            "icon": {
+                "name": "camera",
+                "scale": 0.3,
+                "offset": { "x": -145, "y": -145 }
+            }
         },
         {
             "label": "Music",
-            "icon": "music"
+            "icon": {
+                "name": "music",
+                "scale": 0.3,
+                "offset": { "x": -147, "y": -141 }
+            }
         },
         {
             "label": "Movie",
-            "icon": "movie"
+            "icon": {
+                "name": "movie",
+                "scale": 0.3,
+                "offset": { "x": -150, "y": -129 }
+            }
         },
         {
             "label": "Game",
-            "icon": "game"
+            "icon": {
+                "name": "game",
+                "scale": 0.3,
+                "offset": { "x": -144, "y": -140 }
+            }
         },
         {
             "label": "Network",
-            "icon": "network"
+            "icon": {
+                "name": "network",
+                "scale": 0.25,
+                "offset": { "x": -140, "y": -145 }
+            }
         }
     ]
 }

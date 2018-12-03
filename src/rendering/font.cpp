@@ -147,7 +147,7 @@ namespace v {
         if(m_bad) return;
         m_shader = shader;
     }
-    void GxmFont::print (const vec2& pos, const char* text, const vec4& color, f32 alignment) {
+    void GxmFont::print (const vec2& pos, const char* text, const vec4& color, const vec2& alignment) {
         if(m_bad) return;
         u64 frameId = m_gpu->frame_id();
         if(frameId != m_frameId) {
@@ -168,7 +168,8 @@ namespace v {
         u16 vertexCount = 0;
         
         f32 textLength = 0;
-        f32 align = 0;
+        f32 textHeight = 0;
+        vec2 align = vec2(0, 0);
         // calculate x offset for alignment
         for(u16 i = 0;i < len;i++) {
             char ch = text[i];
@@ -178,19 +179,21 @@ namespace v {
             vec2 br_uv = vec2(glyphCoords.z, glyphCoords.w);
             vec2 dims = (br_uv - tl_uv) * vec2(texSize, texSize);
             vec2 realDims = m_glyphDimensions[ch];
+            if(realDims.y > textHeight) textHeight = realDims.y;
             textLength += m_glyphDimensions[ch].x;
         }
-        align = textLength * alignment;
-        for(u16 i = 0;i < len;i++) {
-            char ch = text[i];
+        align.x = textLength * alignment.x;
+        align.y = textHeight * -alignment.y;
+        u16 i = 0;
+        for(u16 c = 0;c < len;c++) {
+            char ch = text[c];
             if(ch == ' ') { cursor.x += heightPx * 0.75f; continue; }
             vertexCount += 4;
             vec4& glyphCoords = m_glyphs[ch];
             vec2 tl_uv = vec2(glyphCoords.x, glyphCoords.y);
             vec2 br_uv = vec2(glyphCoords.z, glyphCoords.w);
             vec2 dims = (br_uv - tl_uv) * vec2(texSize, texSize);
-            vec2 o = m_glyphOffsets[ch];
-            o.x += align;
+            vec2 o = m_glyphOffsets[ch] + align;
             m_vertices->write(fontVertex(cursor + o                  , tl_uv                 , color));
             m_vertices->write(fontVertex(cursor + o + vec2(dims.x, 0), vec2(br_uv.x, tl_uv.y), color));
             m_vertices->write(fontVertex(cursor + o + dims           , br_uv                 , color));
@@ -202,6 +205,7 @@ namespace v {
             m_indices->write<u16>((i * 4) + 2 + baseVertex);
             m_indices->write<u16>((i * 4) + 3 + baseVertex);
             cursor.x += m_glyphDimensions[ch].x;
+            i++;
         }
         
         u16 indexCount = (vertexCount * 0.25f) * 6; // face count * 6

@@ -56,6 +56,8 @@ namespace v {
             
             void begin_frame ();
             void render (SceGxmPrimitiveType ptype, SceGxmIndexFormat itype, const void* indices, u32 indexCount);
+            void draw_line(const vec2& p0, const vec2& p1, const vec4& color);
+            void draw_point(const vec2& p0, f32 point_size, const vec4& color);
             void end_frame ();
             void swap_buffers ();
             void clear_screen ();
@@ -73,6 +75,8 @@ namespace v {
             glm::vec4 m_clearColor;
             u32 m_backBufferIndex;
             u32 m_frontBufferIndex;
+            u32 m_currentDrawVertexOffset;
+            u32 m_currentDrawIndexOffset;
             u64 m_frameId;
             bool m_waitVblank;
             GxmContext* m_context;
@@ -82,6 +86,9 @@ namespace v {
             GxmShaderPatcher* m_patcher;
             GxmBuffer* m_clearIndices;
             GxmBuffer* m_clearVertices;
+            GxmBuffer* m_drawVertices;
+            GxmBuffer* m_drawIndices;
+            GxmShader* m_drawShader;
             GxmShader* m_clearShader;
             GxmShader* m_customClearShader;
             FT_Library m_freetype;
