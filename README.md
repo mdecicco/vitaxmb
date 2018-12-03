@@ -2,20 +2,19 @@
 A more visually appealing shell for the PS Vita
 
 # Notes
-This doesn't actually do anything yet, other than present you with an xmb-like interface with no options
+This doesn't actually do anything yet, other than present you with an xmb-like interface with options that don't do anything yet
 
 # Currently working on
-- Improving font appearance by:
-  - Implementing signed distance field fonts, generated at runtime from .ttf files and saved to the storage device
-  - This will allow users to add custom .ttf fonts without having to deal with weird programs for rendering the SDF textures themselves
-- Improving icon appearance by:
-  - Maybe finding or making SVG versions of each XMB icon
-  - Rendering the SVGs as a signed distance field font
-  - Calculating shadows in the icon shaders rather than baking them into the images
-- Making icon sliding animation more responsive, and more similar to the PSP/PS3 XMB
+- Implementing XMB navigation logic
+
+# Features
+- Customizable XMB options
+- Customizable theme
+- TTF font support
+- Font glyph map caching (rendering glyphs from a TTF to a SDF glyph map turned out to be expensive)
 
 # Coming up
-- Making the application more data-oriented, for custom themes and custom menu items and such
+- Figuring out why rendered text is ugly af
 - Adding the 'tick' sound effect when moving through the XMB
 - Maybe finding the sound effect from the PSP that is played when there's an error
 - Slide-out options pane like the PSP has
@@ -42,7 +41,7 @@ make s (sends the .vpk to your vita, once FTP is enabled on the device)
 ```
 
 # Adding shaders, fonts, icons
-If you add a new file to `/resources/icons` or `/resources/fonts` you will need to:
+If you add a new file to `/resources/icons`, `/resources/fonts`, or `/resources/config` you will need to:
 ```
 cmake . (updates the makefile with the new resource files)
 make (re-packs the .vpk with those files)
@@ -64,5 +63,13 @@ cmake . (updates the makefile with the new compiled shaders that will be in `/bu
 
 `make us` Only sends compiled shaders to the device (from `/build`)
 
+`make uc` Only sends config files to the device (from `/resources/config`)
+
 # Thanks to:
-I'll do this later so I can do it properly. I'm busy now
+xerpi - libvita2d, gxmfun (reference material)
+other libvita2d contributors - libvita2d (reference material)
+FirebirdTA01 - Vita3D_Sample_cpp (reference material)
+poly04 - libvita3d (reference material)
+Rinnegatamante - vitaGL (reference material)
+Everyone who worked to provide people with the ability to make PS Vita applications
+
