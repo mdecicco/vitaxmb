@@ -177,6 +177,6 @@ add_custom_target(us
     COMMENT "Sending shaders to ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/resources/shaders/"
 )
 add_custom_target(m
-    COMMAND socat udp-recv:1996 stdout
+    COMMAND socat udp-recv:1997 stdout
     COMMENT "Listening for Vita..."
 )

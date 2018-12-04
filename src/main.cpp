@@ -10,6 +10,7 @@ using namespace std;
 #include <system/device.h>
 #include <rendering/xmb.h>
 #include <rendering/xmb_icon.h>
+#include <tools/interpolator.hpp>
 using namespace v;
 
 #define printf debugLog
@@ -25,9 +26,10 @@ class XmbOption {
 class XmbSubIcon {
     public:
         XmbSubIcon (u8 level, u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset, const string& text, const string& desc, GxmShader* shader, DeviceGpu* gpu, theme_data* theme) :
-            m_idx(idx), m_shader(shader), m_text(text), m_offsetY(0.0f), active(false),
-            m_rowIdx(0), m_lastRowIdx(0), opacity(1.0f), subIconOpacity(1.0f), expanded(false),
-            positionX(0.0f), m_theme(theme), m_description(desc), m_gpu(gpu), m_level(level)
+            m_idx(idx), m_shader(shader), m_text(text), m_offsetY(0.0f, 0.0f, interpolate::easeOutQuad),
+            active(false), m_rowIdx(0), opacity(1.0f, 0.0f, interpolate::easeOutQuad), m_level(level),
+            subIconOpacity(1.0f, 0.0f, interpolate::easeOutQuad), expanded(false), positionX(0.0f),
+            m_theme(theme), m_description(desc), m_gpu(gpu)
         {
             m_icon = new XmbIcon(icon, iconScale, iconOffset, gpu, shader, theme);
         }
@@ -38,7 +40,7 @@ class XmbSubIcon {
         }
         
         void offsetY(f32 offset) {
-            m_offsetY = offset;
+            m_offsetY.set_immediate(offset);
         }
         
         void update (f32 dt) {
@@ -55,26 +57,12 @@ class XmbSubIcon {
                     }
                 }
                 
-                f32 offset = m_theme->icon_spacing * m_rowIdx;
-                f32 last_offset = m_theme->icon_spacing * m_lastRowIdx;
-                f32 real_offset = offset;
-                f32 anim_fac = (1.0f - (m_slideAnimTime / m_theme->slide_animation_duration));
-                if(m_slideAnimTime != 0.0f) {
-                    m_slideAnimTime -= dt;
-                    if(m_slideAnimTime < 0.0f) m_slideAnimTime = 0.0f;
-                    real_offset = last_offset + ((offset - last_offset) * anim_fac);
-                }
+                f32 offset = m_offsetY;
                 
                 for(u8 c = 0;c < items.size();c++) {
                     items[c]->positionX = m_icon->position.x;
-                    items[c]->offsetY(-real_offset);
+                    items[c]->offsetY(-offset);
                     items[c]->update(dt);
-                    
-                    bool isActive = c == m_rowIdx;
-                    bool wasActive = c == m_lastRowIdx && m_slideAnimTime != 0.0f;
-                    f32 minOpacity = c >= m_rowIdx ? 0.5f : 0.1f;
-                    items[c]->opacity = opacity * subIconOpacity * (wasActive ? glm::max((1.0f - anim_fac), minOpacity) : isActive ? glm::max(anim_fac, 0.5f) : minOpacity);
-                    items[c]->active = isActive || wasActive;
                 }
             }
         }
@@ -110,11 +98,25 @@ class XmbSubIcon {
                 }
             }
             
-            m_lastRowIdx = m_rowIdx;
+            u8 lastRow = m_rowIdx;
             m_rowIdx += direction;
             if (m_rowIdx >= (i8)items.size()) m_rowIdx = items.size() - 1;
             else if (m_rowIdx < 0) m_rowIdx = 0;
-            else m_slideAnimTime = m_theme->slide_animation_duration;
+            
+            if(lastRow != m_rowIdx) {
+                m_offsetY.duration(m_theme->slide_animation_duration);
+                for(u8 i = 0;i < items.size();i++) {
+                    XmbSubIcon* c = items[i];
+                    c->opacity.duration(m_theme->slide_animation_duration);
+                    if(i == m_rowIdx) {
+                        c->active = true;
+                        c->opacity = 1.0f;
+                    } else {
+                        (c->opacity = opacity * subIconOpacity * 0.1f).then([c]() mutable { c->active = false; });
+                    }
+                }
+                m_offsetY = m_theme->icon_spacing * m_rowIdx;
+            }
         }
         
         void onButtonDown(SceCtrlButtons btn) {
@@ -128,7 +130,9 @@ class XmbSubIcon {
                 }
                 
                 if(btn == SCE_CTRL_CROSS) {
-                    if(items[m_rowIdx]->items.size() > 0) items[m_rowIdx]->expanded = true;
+                    if(items[m_rowIdx]->items.size() > 0) {
+                        items[m_rowIdx]->expanded = true;
+                    }
                 } else if(btn == SCE_CTRL_CIRCLE) {
                     expanded = false;
                 }
@@ -136,8 +140,8 @@ class XmbSubIcon {
         }
         
         
-        f32 opacity;
-        f32 subIconOpacity;
+        Interpolator<f32> opacity;
+        Interpolator<f32> subIconOpacity;
         f32 positionX;
         bool active;
         bool expanded;
@@ -148,9 +152,7 @@ class XmbSubIcon {
         u8 m_level;
         u8 m_idx;
         i8 m_rowIdx;
-        i8 m_lastRowIdx;
-        f32 m_slideAnimTime;
-        f32 m_offsetY;
+        Interpolator<f32> m_offsetY;
         XmbIcon* m_icon;
         GxmShader* m_shader;
         string m_text;
@@ -163,8 +165,9 @@ class XmbCol : public InputReceiver {
     public:
         XmbCol (u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset, const string& text, GxmShader* shader, DeviceGpu* gpu, theme_data* theme) :
             m_idx(idx), m_shader(shader), m_text(text), m_offsetX(0.0f), active(false),
-            m_rowIdx(0), m_lastRowIdx(0), opacity(1.0f), subIconOpacity(1.0f), m_theme(theme),
-            m_gpu(gpu)
+            m_rowIdx(0), opacity(1.0f, 0.0f, interpolate::easeOutCubic), m_gpu(gpu),
+            subIconOpacity(1.0f, 0.0f, interpolate::easeOutCubic), m_theme(theme),
+            m_offsetY(0.0f, 0.0f, interpolate::easeOutCubic)
         {
             m_icon = new XmbIcon(icon, iconScale, iconOffset, gpu, shader, theme);
         }
@@ -191,26 +194,12 @@ class XmbCol : public InputReceiver {
                     }
                 }
                 
-                f32 offset = m_theme->icon_spacing * m_rowIdx;
-                f32 last_offset = m_theme->icon_spacing * m_lastRowIdx;
-                f32 real_offset = offset;
-                f32 anim_fac = (1.0f - (m_slideAnimTime / m_theme->slide_animation_duration));
-                if(m_slideAnimTime != 0.0f) {
-                    m_slideAnimTime -= dt;
-                    if(m_slideAnimTime < 0.0f) m_slideAnimTime = 0.0f;
-                    real_offset = last_offset + ((offset - last_offset) * anim_fac);
-                }
+                f32 offset = m_offsetY;
                 
                 for(u8 c = 0;c < items.size();c++) {
                     items[c]->positionX = m_icon->position.x;
-                    items[c]->offsetY(-real_offset);
+                    items[c]->offsetY(-offset);
                     items[c]->update(dt);
-                    
-                    bool isActive = c == m_rowIdx;
-                    bool wasActive = c == m_lastRowIdx && m_slideAnimTime != 0.0f;
-                    f32 minOpacity = c >= m_rowIdx ? 0.5f : 0.1f;
-                    items[c]->opacity = opacity * subIconOpacity * (wasActive ? glm::max((1.0f - anim_fac), minOpacity) : isActive ? glm::max(anim_fac, 0.5f) : minOpacity);
-                    items[c]->active = isActive || wasActive;
                 }
             }
         }
@@ -245,11 +234,25 @@ class XmbCol : public InputReceiver {
                 }
             }
             
-            m_lastRowIdx = m_rowIdx;
+            u8 lastRow = m_rowIdx;
             m_rowIdx += direction;
             if (m_rowIdx >= (i8)items.size()) m_rowIdx = items.size() - 1;
             else if (m_rowIdx < 0) m_rowIdx = 0;
-            else m_slideAnimTime = m_theme->slide_animation_duration;
+            
+            if(lastRow != m_rowIdx) {
+                m_offsetY.duration(m_theme->slide_animation_duration);
+                for(u8 i = 0;i < items.size();i++) {
+                    XmbSubIcon* c = items[i];
+                    c->opacity.duration(m_theme->slide_animation_duration);
+                    if(i == m_rowIdx) {
+                        c->active = true;
+                        c->opacity = 1.0f;
+                    } else {
+                        (c->opacity = opacity * subIconOpacity * 0.1f).then([c]() mutable { c->active = false; });
+                    }
+                }
+                m_offsetY = m_theme->icon_spacing * m_rowIdx;
+            }
         }
         
         virtual void onButtonDown(SceCtrlButtons btn) {
@@ -269,16 +272,15 @@ class XmbCol : public InputReceiver {
         }
         
         bool active;
-        f32 opacity;
-        f32 subIconOpacity;
+        Interpolator<f32> opacity;
+        Interpolator<f32> subIconOpacity;
         vector<XmbSubIcon*> items;
         
     protected:
         u8 m_idx;
         i8 m_rowIdx;
-        i8 m_lastRowIdx;
-        f32 m_slideAnimTime;
         f32 m_offsetX;
+        Interpolator<f32> m_offsetY;
         XmbIcon* m_icon;
         GxmShader* m_shader;
         DeviceGpu* m_gpu;
@@ -288,7 +290,7 @@ class XmbCol : public InputReceiver {
 
 class Xmb : public InputReceiver {
     public:
-        Xmb (DeviceGpu* gpu) : m_gpu(gpu), m_colIdx(0), m_lastColIdx(0) {
+        Xmb (DeviceGpu* gpu) : m_gpu(gpu), m_colIdx(0), m_offsetX(0.0f, 0.0f, interpolate::easeOutCubic) {
             m_bgShader = gpu->load_shader("resources/shaders/xmb_back_v.gxp", "resources/shaders/xmb_back_f.gxp", sizeof(f32) * 2);
             if(m_bgShader) {
                 m_bgShader->attribute("p", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
@@ -598,27 +600,14 @@ class Xmb : public InputReceiver {
         }
         
         void update (f32 dt) {
+            m_offsetX.duration(m_theme.slide_animation_duration);
             if(m_theme.wave_enabled) m_wave->update(dt);
             
-            f32 offset = m_theme.icon_spacing * m_colIdx;
-            f32 last_offset = m_theme.icon_spacing * m_lastColIdx;
-            f32 real_offset = offset;
-            f32 anim_fac = (1.0f - (m_slideAnimTime / m_theme.slide_animation_duration));
-            if(m_slideAnimTime != 0.0f) {
-                m_slideAnimTime -= dt;
-                if(m_slideAnimTime < 0.0f) m_slideAnimTime = 0.0f;
-                real_offset = last_offset + ((offset - last_offset) * anim_fac);
-            }
+            f32 offset = m_offsetX;
             
             for(u8 c = 0;c < m_cols.size();c++) {
-                m_cols[c]->offsetX(-real_offset);
+                m_cols[c]->offsetX(-offset);
                 m_cols[c]->update(dt);
-                
-                bool isActive = c == m_colIdx;
-                bool wasActive = c == m_lastColIdx && m_slideAnimTime != 0.0f;
-                m_cols[c]->opacity = wasActive ? glm::max((1.0f - anim_fac), 0.5f) : isActive ? glm::max(anim_fac, 0.5f) : 0.5f;
-                m_cols[c]->subIconOpacity = wasActive ? (1.0f - anim_fac) : isActive ? anim_fac : 0.0f;
-                m_cols[c]->active = isActive || wasActive;
             }
         }
         
@@ -631,28 +620,39 @@ class Xmb : public InputReceiver {
         }
         
         virtual void onButtonDown(SceCtrlButtons btn) {
+            u8 lastColIdx = m_colIdx;
             if(btn == SCE_CTRL_LEFT) {
-                m_lastColIdx = m_colIdx;
                 m_colIdx -= 1;
                 if (m_colIdx < 0) m_colIdx = 0;
-                else m_slideAnimTime = m_theme.slide_animation_duration;
             } else if(btn == SCE_CTRL_RIGHT) {
-                m_lastColIdx = m_colIdx;
                 m_colIdx += 1;
                 if (m_colIdx > 5) m_colIdx = 5;
-                else m_slideAnimTime = m_theme.slide_animation_duration;
             } else if(btn == SCE_CTRL_UP) {
                 m_cols[m_colIdx]->shift(-1);
             } else if(btn == SCE_CTRL_DOWN) {
                 m_cols[m_colIdx]->shift(1);
+            }
+            if(lastColIdx != m_colIdx) {
+                for(u8 i = 0;i < m_cols.size();i++) {
+                    XmbCol* c = m_cols[i];
+                    c->opacity.duration(m_theme.slide_animation_duration);
+                    if(i == m_colIdx) {
+                        c->active = true;
+                        c->opacity = 1.0f;
+                        c->subIconOpacity = 1.0f;
+                    } else {
+                        (c->opacity = 0.5f).then([c]() mutable { c->active = false; });
+                        c->subIconOpacity = 0.0f;
+                    }
+                }
+                m_offsetX = m_theme.icon_spacing * m_colIdx;
             }
         }
     
     protected:
         // non-persistent state
         i8 m_colIdx;
-        i8 m_lastColIdx;
-        f32 m_slideAnimTime;
+        Interpolator<f32> m_offsetX;
         
         // persistent state
         theme_data m_theme;
