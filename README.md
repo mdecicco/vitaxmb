@@ -76,5 +76,7 @@ poly04 - libvita3d (reference material)
 
 Rinnegatamante - vitaGL (reference material)
 
+TheFloW - VitaShell (reference material)
+
 Everyone who worked to provide people with the ability to make PS Vita applications
 
