@@ -2,10 +2,11 @@
 A more visually appealing shell for the PS Vita
 
 # Notes
-This doesn't actually do anything yet, other than present you with an xmb-like interface with options that don't do anything yet
+This doesn't do anything useful yet
 
 # Currently working on
 - Implementing XMB Options pane functions for editing settings and triggering actions
+- Saving changes made during runtime automatically, and regularly
 
 # Features
 - Customizable XMB options
@@ -14,12 +15,10 @@ This doesn't actually do anything yet, other than present you with an xmb-like i
 - Font glyph map caching (rendering glyphs from a TTF to a SDF glyph map turned out to be expensive)
 
 # Coming up
-- Figuring out why rendered text is ugly af
-- Adding the 'tick' sound effect when moving through the XMB
-- Maybe finding the sound effect from the PSP that is played when there's an error
-- Slide-out options pane like the PSP has
 - USB/FTP menu item with option for which device to mount
 - Loading a list of vita/psp games and showing them in the XMB (with icons/backgrounds but probably not PMFs)
+- Figuring out why rendered text is ugly af
+- Adding the 'tick' sound effect when moving through the XMB
 - Figuring out how to start applications and make them return to this application
 - If the above works out, overriding the PS button and rendering the XMB over the current application like the PS3 does
 
@@ -67,7 +66,7 @@ cmake . (updates the makefile with the new compiled shaders that will be in `/bu
 
 # Debugging
 
-Run `make m` after updating any files necessary and then open the application on your device. This probably only works on linux or OS X, I'm not sure if the command used for monitoring the Vita exists on windows.
+Run `make m` after updating any files necessary and then open the application on your device. This probably only works on linux or OS X, I'm not sure if the command used for monitoring the Vita exists for windows.
 
 # Thanks to:
 xerpi - libvita2d, gxmfun (reference material)
