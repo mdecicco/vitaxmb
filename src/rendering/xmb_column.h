@@ -7,6 +7,7 @@ namespace v {
     class XmbIcon;
     class XmbSubIcon;
     class XmbOption;
+    class Xmb;
     class GxmTexture;
     class GxmShader;
     class DeviceGpu;
@@ -15,7 +16,8 @@ namespace v {
     class XmbCol : public InputReceiver {
         public:
             XmbCol (u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset,
-                    const string& text, GxmShader* shader, DeviceGpu* gpu, theme_data* theme);
+                    const string& text, GxmShader* shader, DeviceGpu* gpu,
+                    theme_data* theme, Xmb* xmb);
             ~XmbCol ();
             void offsetX(f32 offset);
             void update (f32 dt);
@@ -43,5 +45,6 @@ namespace v {
             DeviceGpu* m_gpu;
             string m_text;
             theme_data* m_theme;
+            Xmb* m_xmb;
     };
 };

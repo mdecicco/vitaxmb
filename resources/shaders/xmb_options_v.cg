@@ -1,0 +1,11 @@
+float4 main(
+    float3 pos,
+    out float2 left_distance : TEXCOORD0
+) : POSITION {
+    float2 transformedPos = float2(
+        ((pos.x / 960.0f) * 2.0f) - 1.0f,
+        1.0f - ((pos.y / 544.0f) * 2.0f)
+    );
+    left_distance = float2(pos.z, 0.0f);
+    return float4(transformedPos, 0.5f, 1.0f);
+}

@@ -1,0 +1,15 @@
+float4 main(
+    float2 pos,
+    float3 color,
+    out float4 out_color : COLOR,
+    uniform float2 translation,
+    uniform float opacity,
+    uniform float scale
+) : POSITION {
+    float2 transformedPos = float2(
+        ((((pos.x * scale) + translation.x) / 960.0f) * 2.0f) - 1.0f,
+        1.0f - ((((pos.y * scale) + translation.y) / 544.0f) * 2.0f)
+    );
+    out_color = float4(color, opacity);
+    return float4(transformedPos, 0.5f, 1.0f);
+}

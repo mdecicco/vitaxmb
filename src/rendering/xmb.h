@@ -4,15 +4,32 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <functional>
 using namespace std;
 
-#include <system/device.h>
-#include <tools/perlin.hpp>
+#include <common/json.hpp>
+using namespace nlohmann;
+
+#include <tools/interpolator.hpp>
+#include <tools/math.h>
+#include <system/input.h>
 
 namespace v {
-    vec3 hsl(const vec3& in);
+    class Device;
     class GxmFont;
     class GxmShader;
+    class GxmTexture;
+    class GxmBuffer;
+    class ConfigFile;
+    class DeviceGpu;
+    class Xmb;
+    class XmbCol;
+    class XmbOption;
+    class XmbSubIcon;
+    class XmbWave;
+    class ColorPicker;
+    
     typedef struct theme_data {
         bool wave_enabled;
         bool show_icon_alignment_point;
@@ -26,9 +43,11 @@ namespace v {
         f32 slide_animation_duration;
         vec2 icon_offset;
         vec2 font_column_icon_offset;
+        vec2 current_option_icon_offset;
         vec3 background_color;
         vec3 wave_color;
         vec3 font_color;
+        vec3 options_pane_color;
         string name;
         string font_file;
         string font_vertex_shader;
@@ -37,34 +56,90 @@ namespace v {
         GxmShader* font_shader;
     } theme_data;
     
-    typedef struct xmbVertex {
-        xmbVertex (f32 _x, f32 _y, f32 _z, f32 _nx, f32 _ny, f32 _nz);
-        ~xmbVertex();
-        f32 x, y, z;
-        f32 nx, ny, nz;
-    } xmbVertex;
-
-    class XmbWave {
+    typedef struct SettingChangedData {
+        Xmb* xmb;
+        Device* device;
+        theme_data* theme;
+        json from;
+        json to;
+    } SettingChangedData;
+    typedef void (*SettingChangedCallback)(SettingChangedData*);
+    typedef struct SettingInitializeData {
+        Xmb* xmb;
+        Device* device;
+        theme_data* theme;
+    } SettingInitializeData;
+    typedef json (*SettingInitializeCallback)(SettingInitializeData*);
+    typedef struct setting {
+        SettingChangedCallback changed;
+        SettingInitializeCallback initialize;
+    } setting;
+    
+    class XmbOptionsPane {
         public:
-            XmbWave (u32 widthSegs, u32 lengthSegs, DeviceGpu* gpu, theme_data* theme);
-            ~XmbWave ();
+            XmbOptionsPane (DeviceGpu* gpu, theme_data* theme);
+            ~XmbOptionsPane ();
             
-            xmbVertex* vertexAt(u32 x, u32 z);
-            f32 heightAt(u32 x, u32 z);
             void update (f32 dt);
             void render ();
-        
+            
+            Interpolator<f32> offsetX;
+            Interpolator<f32> opacity;
+            
+            function<void()> renderCallback;
+            bool hide;
         protected:
-            u32 m_indexCount;
-            u32 m_width;
-            u32 m_length;
-            f32 m_noise_x;
-            f32 m_noise_y;
-            siv::PerlinNoise m_noise;
+            DeviceGpu* m_gpu;
+            theme_data* m_theme;
             GxmBuffer* m_indices;
             GxmBuffer* m_vertices;
             GxmShader* m_shader;
+    };
+    
+    class Xmb : public InputReceiver {
+        public:
+            Xmb (DeviceGpu* gpu);
+            ~Xmb ();
+            
+            void register_all_settings ();
+            void theme (const string& themeName);
+            void load_icons ();
+            void load_columns ();
+            void load_column_items(XmbCol* col, json& items);
+            XmbSubIcon* load_menu_item(u8 level, u8 index, XmbCol* column, XmbSubIcon* parent, json& item);
+            XmbOption* load_menu_option(u8 index, XmbSubIcon* parent, json& option);
+            GxmTexture* get_icon(const string& name);
+            XmbOptionsPane* options_pane () const { return m_options; }
+            ColorPicker* color_input () const { return m_colorInput; }
+            
+            void register_setting(const string& settingPath, SettingChangedCallback changedCallback, SettingInitializeCallback initCallback);
+            void setting_changed(const string& settingPath, const json& value, const json& last);
+            
+            
+            void update (f32 dt);
+            void render ();
+            virtual void onButtonDown(SceCtrlButtons btn);
+        
+        protected:
+            // non-persistent state
+            i8 m_colIdx;
+            Interpolator<f32> m_offsetX;
+            
+            // persistent state
+            theme_data m_theme;
+            
+            // renderables
+            XmbOptionsPane* m_options;
+            XmbWave* m_wave;
+            unordered_map<string, GxmTexture*> m_icons;
+            unordered_map<string, setting> m_settings;
+            vector<XmbCol*> m_cols;
+            ColorPicker* m_colorInput;
+            
+            // resources
+            ConfigFile* m_config;
+            GxmShader* m_bgShader;
+            GxmShader* m_iconShader;
             DeviceGpu* m_gpu;
-            theme_data* m_theme;
     };
 };

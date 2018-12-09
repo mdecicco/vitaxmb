@@ -191,7 +191,7 @@ namespace v {
     }
     void DeviceGpu::render (SceGxmPrimitiveType ptype, SceGxmIndexFormat itype, const void* indices, u32 indexCount) {
         int err = sceGxmDraw(m_context->get(), ptype, itype, indices, indexCount);
-        //printf("sceGxmDraw(): 0x%X\n", err);
+        if(err != 0) printf("sceGxmDraw(): 0x%X\n", err);
     }
     void DeviceGpu::draw_line(const vec2& p0, const vec2& p1, const vec4& color) {
         if(m_drawShader) {

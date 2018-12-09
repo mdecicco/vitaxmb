@@ -83,6 +83,10 @@ namespace v {
                                 );
                                 m_glyphOffsets[ch] = vec2(bitmap_glyph->left - glyph_offset_x, -bitmap_glyph->top - glyph_offset_y);
                                 m_glyphDimensions[ch] = vec2(bitmap.width, bitmap.rows);
+                                m_glyphAdvance[ch] = vec2(
+                                    (bitmap_glyph->root.advance.x >> 16) + (bitmap_glyph->root.advance.x & 0xffff) / 65536.0f,
+                                    (bitmap_glyph->root.advance.y >> 16) + (bitmap_glyph->root.advance.y & 0xffff) / 65536.0f
+                                );
                                 for(u16 bx = 0;bx < bitmap.width;bx++) {
                                     for(u16 by = 0;by < bitmap.rows;by++) {
                                         u32 px = start_x + glyph_offset_x + bx;
@@ -113,6 +117,7 @@ namespace v {
                     cached->write(m_glyphs[i]);
                     cached->write(m_glyphOffsets[i]);
                     cached->write(m_glyphDimensions[i]);
+                    cached->write(m_glyphAdvance[i]);
                 }
                 cached->write(tex, texSize * texSize);
                 delete cached;
@@ -126,6 +131,7 @@ namespace v {
                   if(!cached->read(m_glyphs[i])) { delete cached; m_bad = true; return; }
                   if(!cached->read(m_glyphOffsets[i])) { delete cached; m_bad = true; return; }
                   if(!cached->read(m_glyphDimensions[i])) { delete cached; m_bad = true; return; }
+                  if(!cached->read(m_glyphAdvance[i])) { delete cached; m_bad = true; return; }
               }
               
               m_texture = new GxmTexture(texSize, texSize, SCE_GXM_TEXTURE_FORMAT_U8_RRRR, false, gpu->context());
@@ -180,7 +186,7 @@ namespace v {
             vec2 dims = (br_uv - tl_uv) * vec2(texSize, texSize);
             vec2 realDims = m_glyphDimensions[ch];
             if(realDims.y > textHeight) textHeight = realDims.y;
-            textLength += m_glyphDimensions[ch].x;
+            textLength += m_glyphAdvance[ch].x;
         }
         align.x = textLength * alignment.x;
         align.y = textHeight * -alignment.y;
@@ -204,7 +210,7 @@ namespace v {
             m_indices->write<u16>((i * 4) + 1 + baseVertex);
             m_indices->write<u16>((i * 4) + 2 + baseVertex);
             m_indices->write<u16>((i * 4) + 3 + baseVertex);
-            cursor.x += m_glyphDimensions[ch].x;
+            cursor.x += m_glyphAdvance[ch].x;
             i++;
         }
         

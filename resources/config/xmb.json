@@ -17,6 +17,11 @@
                     "hue": 0,
                     "saturation": 0,
                     "lightness": 100
+                },
+                "options_pane": {
+                    "hue": 308.0,
+                    "saturation": 85.0,
+                    "lightness": 45.0
                 }
             },
             "font": {
@@ -32,6 +37,10 @@
                 },
                 "column_icon_offset": {
                     "x": 130,
+                    "y": 0
+                },
+                "current_option_icon_offset": {
+                    "x": 480,
                     "y": 0
                 }
             },
@@ -85,6 +94,10 @@
         {
             "name": "usb",
             "file": "resources/icons/usb450.png"
+        },
+        {
+            "name": "theme",
+            "file": "resources/icons/theme350.png"
         }
     ],
     "default_column": 0,
@@ -104,14 +117,197 @@
                         "scale": 0.25,
                         "offset": { "x": -254, "y": -132 }
                     },
-                    "options": [
+                    "items": [
                         {
                             "label": "ux0",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
                             "action": "connect_usb_ux0"
                         },
                         {
                             "label": "ur0",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
                             "action": "connect_usb_ur0"
+                        }
+                    ]
+                },
+                {
+                    "label": "Theme",
+                    "description": "Adjust theme settings such as background color, icon spacing, wave speed...",
+                    "icon": {
+                        "name": "theme",
+                        "scale": 0.2,
+                        "offset": { "x": -174, "y": -137 }
+                    },
+                    "items": [
+                        {
+                            "label": "Background Wave",
+                            "description": "Hide or show the wave behind the icons",
+                            "setting": "theme.wave.enabled",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Enabled",
+                                    "value": true
+                                },
+                                {
+                                    "label": "Disabled",
+                                    "value": false
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Show Icon Outlines",
+                            "description": "Show the borders of each icon",
+                            "setting": "theme.debug.draw_icon_outline",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Enabled",
+                                    "value": true
+                                },
+                                {
+                                    "label": "Disabled",
+                                    "value": false
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Show Icon Alignment Point",
+                            "description": "Show the point that should be at the center of each icon",
+                            "setting": "theme.debug.draw_icon_align",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Enabled",
+                                    "value": true
+                                },
+                                {
+                                    "label": "Disabled",
+                                    "value": false
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Show Text Alignment Point",
+                            "description": "Show the alignment point for each text element. Position relative to text will vary based on the text's alignment mode",
+                            "setting": "theme.debug.draw_text_align",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Enabled",
+                                    "type": "list item",
+                                    "value": true
+                                },
+                                {
+                                    "label": "Disabled",
+                                    "type": "list item",
+                                    "value": false
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Background Color",
+                            "setting": "theme.colors.background",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Hue, Saturation, Lightness",
+                                    "type": "color",
+                                    "value": {
+                                        "hue": 0.0,
+                                        "saturation": 0.0,
+                                        "lightness": 0.0
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Wave Color",
+                            "setting": "theme.colors.wave",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Hue, Saturation, Lightness",
+                                    "type": "color",
+                                    "value": {
+                                        "hue": 0.0,
+                                        "saturation": 0.0,
+                                        "lightness": 0.0
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Font Color",
+                            "setting": "theme.colors.font",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Hue, Saturation, Lightness",
+                                    "type": "color",
+                                    "value": {
+                                        "hue": 0.0,
+                                        "saturation": 0.0,
+                                        "lightness": 0.0
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "label": "Options Pane Color",
+                            "setting": "theme.colors.options",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "options": [
+                                {
+                                    "label": "Hue, Saturation, Lightness",
+                                    "type": "color",
+                                    "value": {
+                                        "hue": 0.0,
+                                        "saturation": 0.0,
+                                        "lightness": 0.0
+                                    }
+                                }
+                            ]
                         }
                     ]
                 },
@@ -175,15 +371,6 @@
                 },
                 {
                     "label": "dummy 2",
-                    "description": "dummy text dummy text dummy text dummy text",
-                    "icon": {
-                        "name": "user",
-                        "scale": 0.2,
-                        "offset": { "x": -149, "y": -120 }
-                    }
-                },
-                {
-                    "label": "dummy 3",
                     "description": "dummy text dummy text dummy text dummy text",
                     "icon": {
                         "name": "user",

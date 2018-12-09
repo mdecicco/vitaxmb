@@ -18,12 +18,18 @@ namespace v {
             virtual void onRightAnalog(const vec2& pos, const vec2& delta) { }
     };
     
+    typedef struct InputReceiverData {
+        InputReceiver* receiver;
+        f32 left_analog_deadzone;
+        f32 right_analog_deadzone;
+    } InputReceiverData;
+    
     class DeviceInput {
         public:
             DeviceInput ();
             ~DeviceInput ();
             
-            void bind (InputReceiver* rec) { m_receivers.push_back(rec); }
+            void bind (InputReceiver* rec, f32 leftDeadzone = 0.9f, f32 rightDeadzone = 0.9f);
 
             int scan ();
             bool button (unsigned int button) const;
@@ -36,6 +42,6 @@ namespace v {
             vec2 m_rs;
             SceCtrlData m_oldCtrl;
             SceCtrlData m_ctrl;
-            vector<InputReceiver*> m_receivers;
+            vector<InputReceiverData> m_receivers;
     };
 };

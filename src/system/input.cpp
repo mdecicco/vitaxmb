@@ -40,6 +40,14 @@ namespace v {
     DeviceInput::~DeviceInput () {
     }
     
+    void DeviceInput::bind (InputReceiver* rec, f32 leftDeadzone, f32 rightDeadzone) {
+        InputReceiverData d;
+        d.receiver = rec;
+        d.left_analog_deadzone = leftDeadzone;
+        d.right_analog_deadzone = rightDeadzone;
+        m_receivers.push_back(d);
+    }
+    
     int DeviceInput::scan() {
         memcpy(&m_oldCtrl, &m_ctrl, sizeof(SceCtrlData));
         i32 ret = sceCtrlPeekBufferPositive(0, &m_ctrl, 1);
@@ -61,7 +69,7 @@ namespace v {
             for(u8 i = 0;i < 24;i++) {
                 if(down[i] || up[i] || held[i]) {
                     for(auto receiver = m_receivers.begin();receiver != m_receivers.end();receiver++) {
-                        InputReceiver* rec = *receiver;
+                        InputReceiver* rec = (*receiver).receiver;
                         if(down[i]) rec->onButtonDown(button_codes[i]);
                         if(up[i]) rec->onButtonUp(button_codes[i]);
                         if(held[i]) rec->onButtonHeld(button_codes[i]);
@@ -72,6 +80,8 @@ namespace v {
         
         vec2 ls = vec2(m_ctrl.lx, m_ctrl.ly);
         vec2 rs = vec2(m_ctrl.rx, m_ctrl.ry);
+        ls -= 128;
+        rs -= 128;
         vec2 old_ls = vec2(m_ctrl.lx, m_ctrl.ly);
         vec2 old_rs = vec2(m_ctrl.rx, m_ctrl.ry);
         
@@ -87,8 +97,23 @@ namespace v {
         old_ls *= (1.0f / old_ls_m);
         old_rs *= (1.0f / old_rs_m);
         
+        // scale back up, but clamp to a max length of 128, then scale back to -1..1
+        ls_m = min(ls_m, 128.0f) * 0.0078125f;
+        rs_m = min(rs_m, 128.0f) * 0.0078125f;
+        old_ls_m = min(old_ls_m, 128.0f) * 0.0078125f;
+        old_rs_m = min(old_rs_m, 128.0f) * 0.0078125f;
+        ls *= ls_m;
+        rs *= rs_m;
+        old_ls *= old_ls_m;
+        old_rs *= old_rs_m;
         m_ls = ls;
         m_rs = rs;
+        
+        for(auto receiver = m_receivers.begin();receiver != m_receivers.end();receiver++) {
+            InputReceiverData &rec = (*receiver);
+            if(ls_m > rec.left_analog_deadzone) rec.receiver->onLeftAnalog(ls, old_ls - ls);
+            if(rs_m > rec.right_analog_deadzone) rec.receiver->onRightAnalog(rs, old_rs - rs);
+        }
         
         return ret;
     }

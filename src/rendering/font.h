@@ -50,6 +50,7 @@ namespace v {
             vec4 m_glyphs[256];
             vec2 m_glyphOffsets[256];
             vec2 m_glyphDimensions[256];
+            vec2 m_glyphAdvance[256];
             vec2 m_smoothingParams;
             GxmBuffer* m_vertices;
             GxmBuffer* m_indices;

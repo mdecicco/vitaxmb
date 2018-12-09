@@ -6,6 +6,7 @@
 #include <rendering/xmb_icon.h>
 #include <rendering/xmb_column.h>
 #include <rendering/xmb_option.h>
+#include <rendering/color_picker.h>
 
 #include <math.h>
 #include <unordered_map>
@@ -15,13 +16,14 @@ using namespace std;
 #define printf debugLog
 
 namespace v {
-    XmbSubIcon::XmbSubIcon (u8 level, u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset,
+    XmbSubIcon::XmbSubIcon (u8 level, u8 idx, const string& setting, GxmTexture* icon, f32 iconScale, const vec2& iconOffset,
                 const string& text, const string& desc, GxmShader* shader, DeviceGpu* gpu,
-                theme_data* theme, XmbSubIcon* parent, XmbCol* xmbCol) :
+                theme_data* theme, XmbSubIcon* parent, XmbCol* xmbCol, Xmb* xmb) :
         m_idx(idx), m_shader(shader), m_text(text), active(false), m_rowIdx(0),
         m_level(level), expanded(false), m_theme(theme), m_description(desc),
         expandedChild(NULL), m_parent(parent), m_xmbCol(xmbCol), m_gpu(gpu),
-        hide(false),
+        hide(false), m_xmb(xmb), showing_options(false), m_optionsIdx(0),
+        m_setting(setting),
         positionX(level * theme->icon_spacing, 0.0f, interpolate::easeOutQuad),
         m_offsetY(0.0f, 0.0f, interpolate::easeOutQuad),
         opacity(idx == 0 ? 1.0f : 0.1f, 0.0f, interpolate::easeOutQuad),
@@ -51,15 +53,15 @@ namespace v {
         m_icon->opacity = opacity;
         m_icon->update(dt);
         
-        if(expanded) {
-            for(u8 c = 0;c < items.size();c++) {
-                items[c]->update(rootX, dt);
-            }
+        if(expanded) for(u8 c = 0;c < items.size();c++) items[c]->update(rootX, dt);
+        else if(showing_options) {
+            for(u8 c = 0;c < options.size();c++) options[c]->update(dt);
         }
     }
     void XmbSubIcon::render () {
         if(hide) return;
         if(expanded) for(u8 c = 0;c < items.size();c++) items[c]->render();
+        
         m_icon->render();
         if(m_theme->font && !expanded) {
             vec3 c = hsl(m_theme->font_color);
@@ -72,9 +74,42 @@ namespace v {
                 TEXT_ALIGN_X_LEFT_Y_CENTER
             );
         }
+        
+        if(m_theme->font && options.size() > 0 && items.size() == 0) {
+            XmbOption* option = options[m_optionsIdx];
+            if(option->type() != OPTION_TYPE_COLOR) {
+                vec3 c = hsl(m_theme->font_color);
+                vec2 pos = m_icon->position + m_theme->current_option_icon_offset;
+                if(m_theme->show_text_alignment_point) m_gpu->draw_point(pos, 5, vec4(1,1,1,1));
+                m_theme->font->print(
+                    pos,
+                    option->text().c_str(),
+                    vec4(c.x, c.y, c.z, opacity * (f32)textOpacityMultiplier * 0.75f),
+                    TEXT_ALIGN_X_LEFT_Y_CENTER
+                );
+            }
+        }
     }
     void XmbSubIcon::shift (i8 direction) {
-        if(expandedChild) expandedChild->shift(direction);
+        if(showing_options) {
+            u8 lastOption = m_optionsIdx;
+            m_optionsIdx += direction;
+            if(m_optionsIdx < 0) m_optionsIdx = 0;
+            if(m_optionsIdx >= (i8)options.size()) m_optionsIdx = options.size() - 1;
+            if(!(options.size() == 1 && options[0]->type() == OPTION_TYPE_COLOR)) {
+                if(lastOption != m_optionsIdx) {
+                    for(u8 i = 0;i < options.size();i++) {
+                        XmbOption* o = options[i];
+                        if(i == m_optionsIdx) o->opacity = 1.0f;
+                        else o->opacity = 0.5f;
+                        o->offsetY = -(m_optionsIdx * 30.0f);
+                    }
+                    
+                    m_xmb->setting_changed(m_setting, options[m_optionsIdx]->value(), options[lastOption]->value());
+                }
+            }
+        }
+        else if(expandedChild) expandedChild->shift(direction);
         else {
             u8 lastRow = m_rowIdx;
             m_rowIdx += direction;
@@ -162,6 +197,37 @@ namespace v {
         if(m_parent) m_parent->showIcons();
         else m_xmbCol->showIcons();
     }
+    void XmbSubIcon::showOptions () {
+        XmbOptionsPane* pane = m_xmb->options_pane();
+        pane->offsetX = -300.0f;
+        pane->opacity = 1.0f;
+        pane->renderCallback = [this, pane]() {
+            f32 offsetX = pane->offsetX;
+            for(u8 i = 0;i < this->options.size();i++) this->options[i]->render(offsetX);
+        };
+        pane->hide = false;
+        showing_options = true;
+        for(u8 c = 0;c < options.size();c++) {
+            options[c]->became_visible();
+            options[c]->opacity = m_optionsIdx == c ? 1.0f : 0.5f;
+        }
+    }
+    void XmbSubIcon::hideOptions () {
+        XmbOptionsPane* pane = m_xmb->options_pane();
+        pane->offsetX = 0.0f;
+        (pane->opacity = 0.0f).then([this, pane]() mutable {
+            this->showing_options = false;
+            if(this->m_parent) this->m_parent->expandedChild = NULL;
+            else if(this->m_xmbCol) this->m_xmbCol->expandedChild = NULL;
+            pane->renderCallback = NULL;
+            pane->hide = true;
+            ColorPicker* input = this->m_xmb->color_input();
+            input->hide = true;
+        });
+        for(u8 c = 0;c < options.size();c++) {
+            options[c]->opacity = 0.0f;
+        }
+    }
     void XmbSubIcon::hideIcons () {
         for(u8 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
@@ -180,9 +246,26 @@ namespace v {
     void XmbSubIcon::onButtonDown(SceCtrlButtons btn) {
         if(!active) return;
         if(items.size() > 0) {
+            //If the selected child item has options
+            XmbSubIcon* selected = items[m_rowIdx];
+            if(selected->options.size() > 0) {
+                SceCtrlButtons trigger = selected->items.size() == 0 ? SCE_CTRL_CROSS : SCE_CTRL_TRIANGLE;
+                if(selected->showing_options && btn == SCE_CTRL_CIRCLE) {
+                    selected->hideOptions();
+                    return;
+                }
+                else if(!selected->showing_options && btn == trigger) {
+                    selected->showOptions();
+                    expandedChild = selected;
+                    return;
+                }
+            }
+            
+            if(selected->showing_options) return;
+            
             if(expandedChild) expandedChild->onButtonDown(btn);
             else if(btn == SCE_CTRL_CIRCLE) contract();
-            else if(btn == SCE_CTRL_CROSS) items[m_rowIdx]->expand();
+            else if(btn == SCE_CTRL_CROSS) selected->expand();
         }
         else if(btn == SCE_CTRL_CIRCLE && m_parent) contract();
     }

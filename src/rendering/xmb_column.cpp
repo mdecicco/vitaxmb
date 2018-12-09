@@ -14,9 +14,12 @@ using namespace std;
 #define printf debugLog
 
 namespace v {
-    XmbCol::XmbCol (u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset, const string& text, GxmShader* shader, DeviceGpu* gpu, theme_data* theme) :
+    XmbCol::XmbCol (u8 idx, GxmTexture* icon, f32 iconScale, const vec2& iconOffset,
+        const string& text, GxmShader* shader, DeviceGpu* gpu, theme_data* theme,
+        Xmb* xmb) :
         m_idx(idx), m_shader(shader), m_text(text), active(false), m_rowIdx(0),
-        m_gpu(gpu), m_theme(theme), m_offsetX(0.0f), hide(false),
+        m_gpu(gpu), m_theme(theme), m_offsetX(0.0f), hide(false), m_xmb(xmb),
+        expandedChild(NULL),
         subIconOpacity(1.0f, 0.0f, interpolate::easeOutCubic),
         opacity(1.0f, 0.0f, interpolate::easeOutCubic)
     {
