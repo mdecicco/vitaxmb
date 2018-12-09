@@ -5,7 +5,7 @@ A more visually appealing shell for the PS Vita
 This doesn't actually do anything yet, other than present you with an xmb-like interface with options that don't do anything yet
 
 # Currently working on
-- Implementing XMB navigation logic
+- Implementing XMB Options pane functions for editing settings and triggering actions
 
 # Features
 - Customizable XMB options
@@ -64,6 +64,10 @@ cmake . (updates the makefile with the new compiled shaders that will be in `/bu
 `make us` Only sends compiled shaders to the device (from `/build`)
 
 `make uc` Only sends config files to the device (from `/resources/config`)
+
+# Debugging
+
+Run `make m` after updating any files necessary and then open the application on your device. This probably only works on linux or OS X, I'm not sure if the command used for monitoring the Vita exists on windows.
 
 # Thanks to:
 xerpi - libvita2d, gxmfun (reference material)
