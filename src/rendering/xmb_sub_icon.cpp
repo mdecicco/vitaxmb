@@ -198,6 +198,8 @@ namespace v {
         else m_xmbCol->showIcons();
     }
     void XmbSubIcon::showOptions () {
+        if(this->m_parent) this->m_parent->expandedChild = this;
+        else if(this->m_xmbCol) this->m_xmbCol->expandedChild = this;
         XmbOptionsPane* pane = m_xmb->options_pane();
         pane->offsetX = -300.0f;
         pane->opacity = 1.0f;
@@ -217,12 +219,17 @@ namespace v {
         pane->offsetX = 0.0f;
         (pane->opacity = 0.0f).then([this, pane]() mutable {
             this->showing_options = false;
+            
             if(this->m_parent) this->m_parent->expandedChild = NULL;
             else if(this->m_xmbCol) this->m_xmbCol->expandedChild = NULL;
+            
             pane->renderCallback = NULL;
             pane->hide = true;
+            
             ColorPicker* input = this->m_xmb->color_input();
             input->hide = true;
+            
+            for(u8 c = 0;c < this->options.size();c++) this->options[c]->became_hidden();
         });
         for(u8 c = 0;c < options.size();c++) {
             options[c]->opacity = 0.0f;
@@ -250,23 +257,17 @@ namespace v {
             XmbSubIcon* selected = items[m_rowIdx];
             if(selected->options.size() > 0) {
                 SceCtrlButtons trigger = selected->items.size() == 0 ? SCE_CTRL_CROSS : SCE_CTRL_TRIANGLE;
-                if(selected->showing_options && btn == SCE_CTRL_CIRCLE) {
-                    selected->hideOptions();
-                    return;
-                }
-                else if(!selected->showing_options && btn == trigger) {
+                if(!selected->showing_options && btn == trigger) {
                     selected->showOptions();
-                    expandedChild = selected;
                     return;
                 }
             }
             
-            if(selected->showing_options) return;
+            if(selected->showing_options && selected->options.size() > 0) return;
             
             if(expandedChild) expandedChild->onButtonDown(btn);
             else if(btn == SCE_CTRL_CIRCLE) contract();
             else if(btn == SCE_CTRL_CROSS) selected->expand();
-        }
-        else if(btn == SCE_CTRL_CIRCLE && m_parent) contract();
+        } else if(btn == SCE_CTRL_CIRCLE && m_parent) contract();
     }
 };

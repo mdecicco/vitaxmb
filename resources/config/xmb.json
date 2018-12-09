@@ -151,6 +151,7 @@
                             "label": "Background Wave",
                             "description": "Hide or show the wave behind the icons",
                             "setting": "theme.wave.enabled",
+                            "type": "select",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
@@ -171,6 +172,7 @@
                             "label": "Show Icon Outlines",
                             "description": "Show the borders of each icon",
                             "setting": "theme.debug.draw_icon_outline",
+                            "type": "select",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
@@ -191,6 +193,7 @@
                             "label": "Show Icon Alignment Point",
                             "description": "Show the point that should be at the center of each icon",
                             "setting": "theme.debug.draw_icon_align",
+                            "type": "select",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
@@ -211,6 +214,7 @@
                             "label": "Show Text Alignment Point",
                             "description": "Show the alignment point for each text element. Position relative to text will vary based on the text's alignment mode",
                             "setting": "theme.debug.draw_text_align",
+                            "type": "select",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
@@ -232,82 +236,110 @@
                         {
                             "label": "Background Color",
                             "setting": "theme.colors.background",
+                            "type": "color",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            },
-                            "options": [
-                                {
-                                    "label": "Hue, Saturation, Lightness",
-                                    "type": "color",
-                                    "value": {
-                                        "hue": 0.0,
-                                        "saturation": 0.0,
-                                        "lightness": 0.0
-                                    }
-                                }
-                            ]
+                            }
                         },
                         {
                             "label": "Wave Color",
                             "setting": "theme.colors.wave",
+                            "type": "color",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            },
-                            "options": [
-                                {
-                                    "label": "Hue, Saturation, Lightness",
-                                    "type": "color",
-                                    "value": {
-                                        "hue": 0.0,
-                                        "saturation": 0.0,
-                                        "lightness": 0.0
-                                    }
-                                }
-                            ]
+                            }
                         },
                         {
                             "label": "Font Color",
                             "setting": "theme.colors.font",
+                            "type": "color",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            },
-                            "options": [
-                                {
-                                    "label": "Hue, Saturation, Lightness",
-                                    "type": "color",
-                                    "value": {
-                                        "hue": 0.0,
-                                        "saturation": 0.0,
-                                        "lightness": 0.0
-                                    }
-                                }
-                            ]
+                            }
                         },
                         {
                             "label": "Options Pane Color",
                             "setting": "theme.colors.options",
+                            "type": "color",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Wave Speed",
+                            "setting": "theme.wave.speed",
+                            "type": "float",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Font Size",
+                            "setting": "theme.font.size",
+                            "type": "float",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Font Smoothing Base Value",
+                            "setting": "theme.font.smoothing.base",
+                            "type": "float",
+                            "increment": {
+                                "left_stick": 0.01,
+                                "right_stick": 0.001
                             },
-                            "options": [
-                                {
-                                    "label": "Hue, Saturation, Lightness",
-                                    "type": "color",
-                                    "value": {
-                                        "hue": 0.0,
-                                        "saturation": 0.0,
-                                        "lightness": 0.0
-                                    }
-                                }
-                            ]
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Font Smoothing Epsilon",
+                            "setting": "theme.font.smoothing.epsilon",
+                            "type": "float",
+                            "increment": {
+                                "left_stick": 0.01,
+                                "right_stick": 0.001
+                            },
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Icon Spacing",
+                            "setting": "theme.icon.spacing",
+                            "type": "float",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
+                        },
+                        {
+                            "label": "Animation Duration",
+                            "setting": "theme.icon.animation.slide",
+                            "type": "float",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            }
                         }
                     ]
                 },

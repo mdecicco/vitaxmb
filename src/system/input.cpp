@@ -30,7 +30,57 @@ namespace v {
         SCE_CTRL_VOLDOWN     , //!< Volume down button.
         SCE_CTRL_POWER         //!< Power button.
     };
-    DeviceInput::DeviceInput () {
+    
+    InputReceiver::InputReceiver () :
+        m_input(NULL), left_analog_deadzone(0.9f), right_analog_deadzone(0.9f),
+        last(NULL), next(NULL)
+    { }
+    InputReceiver::~InputReceiver () {
+        if(m_input->m_activeReceivers == this) m_input->m_activeReceivers = next;
+        if(next) next->last = last;
+        if(last) last->next = next;
+        next = last = NULL;
+    }
+    void InputReceiver::stealInput () {
+        if(m_input->m_activeReceivers == this) m_input->m_activeReceivers = next;
+        if(next) next->last = last;
+        if(last) last->next = next;
+        next = last = NULL;
+        
+        m_input->m_inputStolenBy = this;
+    }
+    void InputReceiver::releaseInput (bool enable) {
+        if (m_input->m_inputStolenBy == this) m_input->m_inputStolenBy = NULL;
+        if(enable) enableInput();
+    }
+    void InputReceiver::disableInput () {
+        if(m_input->m_activeReceivers == this) m_input->m_activeReceivers = last ? last : next;
+        if(next) next->last = last;
+        if(last) last->next = next;
+        next = last = NULL;
+    }
+    void InputReceiver::enableInput () {
+        if(!m_input->m_activeReceivers) m_input->m_activeReceivers = this;
+        else {
+            InputReceiver* cur = m_input->m_activeReceivers;
+            while(cur) {
+                if(cur == this) break;
+                if(!cur->next) {
+                    cur->next = this;
+                    last = cur;
+                    break;
+                }
+                cur = cur->next;
+            }
+        }
+    }
+    void InputReceiver::setAnalogDeadzones (f32 left, f32 right) {
+        left_analog_deadzone = left;
+        right_analog_deadzone = right;
+    }
+    
+    DeviceInput::DeviceInput () : m_activeReceivers(NULL), m_inputStolenBy(NULL)
+    {
         sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
         scan();
         memset(&m_ctrl, 0, sizeof(SceCtrlData));
@@ -41,11 +91,21 @@ namespace v {
     }
     
     void DeviceInput::bind (InputReceiver* rec, f32 leftDeadzone, f32 rightDeadzone) {
-        InputReceiverData d;
-        d.receiver = rec;
-        d.left_analog_deadzone = leftDeadzone;
-        d.right_analog_deadzone = rightDeadzone;
-        m_receivers.push_back(d);
+        rec->setAnalogDeadzones(leftDeadzone, rightDeadzone);
+        rec->m_input = this;
+        if(!m_activeReceivers) {
+            m_activeReceivers = rec;
+            return;
+        }
+        InputReceiver* cur = m_activeReceivers;
+        while(cur) {
+            if(!cur->next) {
+                cur->next = rec;
+                rec->last = cur;
+                break;
+            }
+            cur = cur->next;
+        }
     }
     
     int DeviceInput::scan() {
@@ -68,11 +128,12 @@ namespace v {
         if(!nothing) {
             for(u8 i = 0;i < 24;i++) {
                 if(down[i] || up[i] || held[i]) {
-                    for(auto receiver = m_receivers.begin();receiver != m_receivers.end();receiver++) {
-                        InputReceiver* rec = (*receiver).receiver;
-                        if(down[i]) rec->onButtonDown(button_codes[i]);
-                        if(up[i]) rec->onButtonUp(button_codes[i]);
-                        if(held[i]) rec->onButtonHeld(button_codes[i]);
+                    InputReceiver* cur = m_inputStolenBy ? m_inputStolenBy : m_activeReceivers;
+                    while(cur) {
+                        if(down[i]) cur->onButtonDown(button_codes[i]);
+                        if(up[i]) cur->onButtonUp(button_codes[i]);
+                        if(held[i]) cur->onButtonHeld(button_codes[i]);
+                        cur = cur->next;
                     }
                 }
             }
@@ -109,10 +170,11 @@ namespace v {
         m_ls = ls;
         m_rs = rs;
         
-        for(auto receiver = m_receivers.begin();receiver != m_receivers.end();receiver++) {
-            InputReceiverData &rec = (*receiver);
-            if(ls_m > rec.left_analog_deadzone) rec.receiver->onLeftAnalog(ls, old_ls - ls);
-            if(rs_m > rec.right_analog_deadzone) rec.receiver->onRightAnalog(rs, old_rs - rs);
+        InputReceiver* cur = m_inputStolenBy ? m_inputStolenBy : m_activeReceivers;
+        while(cur) {
+            if(ls_m > cur->left_analog_deadzone) cur->onLeftAnalog(ls, old_ls - ls);
+            if(rs_m > cur->right_analog_deadzone) cur->onRightAnalog(rs, old_rs - rs);
+            cur = cur->next;
         }
         
         return ret;

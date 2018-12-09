@@ -395,7 +395,8 @@ namespace v {
             }
         }
         
-        if(item.value<json>("options", NULL).is_array()) {
+        string type = item.value("type", "");
+        if(type == "select" && item.value<json>("options", NULL).is_array()) {
             json& options = item["options"];
             for(auto it = options.begin();it != options.end();it++) {
                 // This item has children that should be displayed in the slide-out pane
@@ -408,22 +409,28 @@ namespace v {
                 d.device = m_gpu->device();
                 d.theme = &m_theme;
                 json initialValue = (callbacks->second.initialize)(&d);
-                if(xmbIcon->options.size() == 1 && xmbIcon->options[0]->type() == OPTION_TYPE_COLOR) {
-                    printf("Initializing color input for '%s' to '%s'\n", modifiesSetting.c_str(), initialValue.dump().c_str());
-                    xmbIcon->options[0]->value(initialValue);
-                } else {
-                    printf("Searching for option with default value '%s'...\n", initialValue.dump().c_str());
-                    for(u8 i = 0;i < xmbIcon->options.size();i++) {
-                        if(xmbIcon->options[i]->value() == initialValue) {
-                            printf("Default value '%s' being used for '%s'\n", initialValue.dump().c_str(), modifiesSetting.c_str());
-                            xmbIcon->m_optionsIdx = i;
-                            break;
-                        }
+                printf("Searching for option with default value '%s'...\n", initialValue.dump().c_str());
+                for(u8 i = 0;i < xmbIcon->options.size();i++) {
+                    if(xmbIcon->options[i]->value() == initialValue) {
+                        printf("Default value '%s' being used for '%s'\n", initialValue.dump().c_str(), modifiesSetting.c_str());
+                        xmbIcon->m_optionsIdx = i;
+                        break;
                     }
                 }
             }
-        }
-        if(item.value<json>("items", NULL).is_array()) {
+        } else if(type.length() > 0) {
+            json value;
+            auto callbacks = m_settings.find(modifiesSetting);
+            if(callbacks != m_settings.end()) {
+                SettingInitializeData d;
+                d.xmb = this;
+                d.device = m_gpu->device();
+                d.theme = &m_theme;
+                value = (callbacks->second.initialize)(&d);
+                printf("Initializing input for '%s' to '%s'\n", modifiesSetting.c_str(), value.dump().c_str());
+            }
+            xmbIcon->options.push_back(new XmbOption(xmbIcon->options.size(), xmbIcon, "", value, type, &m_theme, this, m_gpu));
+        } else if(item.value<json>("items", NULL).is_array()) {
             json& items = item["items"];
             for(auto it = items.begin();it != items.end();it++) {
                 // This item has children that should be displayed as a column of icons

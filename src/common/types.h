@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <glm/glm.hpp>
+#include <string>
 
 namespace v {
     typedef void*               Ptr;
@@ -33,4 +34,6 @@ namespace v {
     typedef glm::vec2           vec2;
     typedef glm::vec3           vec3;
     typedef glm::vec4           vec4;
+    
+    std::string format (const char* text, ...);
 };
