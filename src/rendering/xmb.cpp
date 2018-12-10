@@ -117,14 +117,17 @@ namespace v {
         m_config = gpu->device()->open_config("xmb");
         if(m_config) {
             json& config = m_config->data();
+            register_settings(this);
             theme(config.value("theme", "default"));
             u8 default_column = config.value("default_column", 0);
             load_icons();
-            register_settings(this);
             load_columns();
             if(m_colIdx >= m_cols.size()) m_colIdx = m_cols.size() - 1;
             m_colIdx = default_column;
             m_cols[m_colIdx]->active = true;
+            for(u8 i = 0;i < m_cols.size();i++) {
+                if(i != m_colIdx) m_cols[i]->opacity.set_immediate(0.5f);
+            }
         }
         
         m_wave = new XmbWave(20, 20, gpu, &m_theme);
@@ -137,7 +140,9 @@ namespace v {
         for(u8 c = 0;c < m_cols.size();c++) {
             delete m_cols[c];
         }
+        for(auto i = m_icons.begin();i != m_icons.end();i++) delete i->second;
         if(m_config) delete m_config;
+        delete m_wave;
         delete m_options;
         delete m_colorInput;
     }
@@ -149,137 +154,29 @@ namespace v {
                 for(auto it = themes.begin();it != themes.end();it++) {
                     json& theme = *it;
                     if(theme.value("name", "") == themeName) {
-                        if(theme.value<json>("font", NULL).is_object()) {
-                            json& font = theme["font"];
-                            m_theme.font_file = font.value("file", "resources/fonts/ubuntu-r.ttf");
-                            m_theme.font_size = font.value("size", 7.0f);
-                            
-                            GxmFont* fnt = m_gpu->load_font(
-                                m_theme.font_file.c_str(),
-                                m_theme.font_size
-                            );
-                            if(fnt) {
-                                if(m_theme.font) delete m_theme.font;
-                                m_theme.font = fnt;
-                            }
-                            
-                            if(font.value<json>("shader", NULL).is_object()) {
-                                json& shader = font["shader"];
-                                m_theme.font_vertex_shader = shader.value("vertex", "resources/shaders/xmb_font_v.gxp");
-                                m_theme.font_fragment_shader = shader.value("fragment", "resources/shaders/xmb_font_f.gxp");
-                                GxmShader* font_shader = m_gpu->load_shader(
-                                    m_theme.font_vertex_shader.c_str(),
-                                    m_theme.font_fragment_shader.c_str(),
-                                    sizeof(fontVertex)
-                                );
-                                if(font_shader) {
-                                    if(m_theme.font_shader) delete m_theme.font_shader;
-                                    m_theme.font_shader = font_shader;
-                                    m_theme.font_shader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
-                                    m_theme.font_shader->attribute("coord", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
-                                    m_theme.font_shader->attribute("color", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 4);
-                                    m_theme.font_shader->uniform("smoothingParams");
-                                    
-                                    SceGxmBlendInfo blend_info;
-                                    blend_info.colorMask = SCE_GXM_COLOR_MASK_ALL;
-                                    blend_info.colorFunc = SCE_GXM_BLEND_FUNC_ADD;
-                                    blend_info.alphaFunc = SCE_GXM_BLEND_FUNC_ADD;
-                                    blend_info.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA;
-                                    blend_info.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                                    blend_info.alphaSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA;
-                                    blend_info.alphaDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                                    m_theme.font_shader->build(&blend_info);
-                                }
-                            }
-                            
-                            if(font.value<json>("smoothing", NULL).is_object()) {
-                                json& smoothing = font["smoothing"];
-                                m_theme.font_smoothing_base = smoothing.value("base", 0.5f);
-                                m_theme.font_smoothing_epsilon = smoothing.value("epsilon", 0.004619f);
-                                if(m_theme.font) m_theme.font->smoothing(m_theme.font_smoothing_base, m_theme.font_smoothing_epsilon);
-                            }
-                            
-                            if(font.value<json>("column_icon_offset", NULL).is_object()) {
-                                json& column_icon_offset = font["column_icon_offset"];
-                                m_theme.font_column_icon_offset.x = column_icon_offset.value("x", 0.0f);
-                                m_theme.font_column_icon_offset.y = column_icon_offset.value("y", 0.0f);
-                            }
-                            
-                            if(font.value<json>("current_option_icon_offset", NULL).is_object()) {
-                                json& current_option_icon_offset = font["current_option_icon_offset"];
-                                m_theme.current_option_icon_offset.x = current_option_icon_offset.value("x", 0.0f);
-                                m_theme.current_option_icon_offset.y = current_option_icon_offset.value("y", 0.0f);
-                            }
-                            
-                            if(m_theme.font) m_theme.font->shader(m_theme.font_shader);
-                        }
-                        
-                        if(theme.value<json>("color", NULL).is_object()) {
-                            json& colors = theme["color"];
-                            
-                            if(colors.value<json>("background", NULL).is_object()) {
-                                json& color = colors["background"];
-                                m_theme.background_color = vec3(
-                                    color.value("hue", 308.0f),
-                                    color.value("saturation", 85.0f),
-                                    color.value("lightness", 45.0f)
-                                );
-                                
-                                m_gpu->clear_color(hsl(m_theme.background_color));
-                            }
-                            
-                            if(colors.value<json>("wave", NULL).is_object()) {
-                                json& color = colors["wave"];
-                                m_theme.wave_color = vec3(
-                                    color.value("hue", 308.0f),
-                                    color.value("saturation", 85.0f),
-                                    color.value("lightness", 45.0f)
-                                );
-                            }
-                            
-                            if(colors.value<json>("font", NULL).is_object()) {
-                                json& color = colors["font"];
-                                m_theme.font_color = vec3(
-                                    color.value("hue", 0.0f),
-                                    color.value("saturation", 0.0f),
-                                    color.value("lightness", 100.0f)
-                                );
-                            }
-                            
-                            if(colors.value<json>("options_pane", NULL).is_object()) {
-                                json& color = colors["options_pane"];
-                                m_theme.options_pane_color = vec3(
-                                    color.value("hue", 0.0f),
-                                    color.value("saturation", 0.0f),
-                                    color.value("lightness", 100.0f)
-                                );
-                            }
-                        }
-                        
-                        if(theme.value<json>("icons", NULL).is_object()) {
-                            json& icons = theme["icons"];
-                            m_theme.icon_spacing = icons.value("spacing", 160);
-                            m_theme.icon_offset.y = icons.value("vertical_offset", 136),
-                            m_theme.icon_offset.x = icons.value("current_icon_horizontal_offset", 192),
-                            m_theme.slide_animation_duration = icons.value("slide_animation_duration", 0.125f);
-                            m_theme.wave_enabled = icons.value("enabled", true); 
-                        }
-                        
-                        if(theme.value<json>("wave", NULL).is_object()) {
-                            json& wave = theme["wave"];
-                            m_theme.wave_enabled = wave.value("enabled", true);
-                            m_theme.wave_speed = wave.value("speed", 0.065f);
-                        }
-                        
-                        if(theme.value<json>("debug", NULL).is_object()) {
-                            json& debug = theme["debug"];
-                            m_theme.show_icon_alignment_point = debug.value("show_icon_alignment_point", false);
-                            m_theme.show_text_alignment_point = debug.value("show_text_alignment_point", false);
-                            m_theme.show_icon_outlines = debug.value("show_icon_outlines", false);
-                        }
+                        recursive_read_theme("theme", theme);
                     }
                 }
             }
+        }
+    }
+    void Xmb::recursive_read_theme(const string& path, const json& value) {
+        printf("Parsing theme settings at path '%s'\n", path.c_str());
+        auto callback = m_settings.find(path);
+        if(callback != m_settings.end()) {
+            json current_value;
+            if(callback->second.initialize) {
+                SettingInitializeData d;
+                d.xmb = this;
+                d.device = m_gpu->device();
+                d.theme = &m_theme;
+                current_value = (callback->second.initialize)(&d);
+            }
+            setting_changed(path, value, current_value);
+        } //else if(!value.is_object()) printf("Logic for '%s' not implemented. This is not necessarily an error.\n", path.c_str());
+        
+        if (value.is_object()) {
+            for(auto it = value.begin();it != value.end();it++) recursive_read_theme(path + "." + it.key(), it.value());
         }
     }
     void Xmb::load_icons () {
@@ -429,7 +326,7 @@ namespace v {
                 value = (callbacks->second.initialize)(&d);
                 printf("Initializing input for '%s' to '%s'\n", modifiesSetting.c_str(), value.dump().c_str());
             }
-            xmbIcon->options.push_back(new XmbOption(xmbIcon->options.size(), xmbIcon, "", value, type, &m_theme, this, m_gpu));
+            xmbIcon->options.push_back(new XmbOption(xmbIcon->options.size(), xmbIcon, "", value, type, item, &m_theme, this, m_gpu));
         } else if(item.value<json>("items", NULL).is_array()) {
             json& items = item["items"];
             for(auto it = items.begin();it != items.end();it++) {
@@ -452,7 +349,7 @@ namespace v {
                 parent->setting().c_str()
             );
         }
-        return new XmbOption(index, parent, label, value, type, &m_theme, this, m_gpu);
+        return new XmbOption(index, parent, label, value, type, option, &m_theme, this, m_gpu);
     }
     GxmTexture* Xmb::get_icon (const string& name) {
         auto tex = m_icons.find(name);
@@ -471,12 +368,12 @@ namespace v {
         s.initialize = initCallback;
         m_settings[settingPath] = s;
     }
-    void Xmb::setting_changed(const string& settingPath, const json& value, const json& last) {
+    json Xmb::setting_changed(const string& settingPath, const json& value, const json& last) {
         printf("'%s' changed from '%s' to '%s'.\n", settingPath.c_str(), last.dump().c_str(), value.dump().c_str());
         auto callback = m_settings.find(settingPath);
         if(callback == m_settings.end()) {
             printf("No callback for %s. Nothing happens from this setting change.\n", settingPath.c_str());
-            return;
+            return value;
         }
         SettingChangedData d;
         d.xmb = this;
@@ -484,7 +381,7 @@ namespace v {
         d.theme = &m_theme;
         d.from = last;
         d.to = value;
-        (callback->second.changed)(&d);
+        return (callback->second.changed)(&d);
     }
 
     void Xmb::update (f32 dt) {
@@ -543,7 +440,7 @@ namespace v {
                         (c->opacity = 0.5f).then([c]() mutable { c->active = false; });
                     }
                 }
-                m_offsetX = m_theme.icon_spacing * m_colIdx;
+                m_offsetX = m_theme.icon_spacing.x * m_colIdx;
             }
         }
         if(btn == SCE_CTRL_UP) {

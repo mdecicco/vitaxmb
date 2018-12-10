@@ -50,6 +50,8 @@ namespace v {
                     m_device.screen().vblank();
                 }
                 
+                delete xmb;
+                
                 return 0;
             }
             

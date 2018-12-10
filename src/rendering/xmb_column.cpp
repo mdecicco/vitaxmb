@@ -36,7 +36,7 @@ namespace v {
         opacity.duration(m_theme->slide_animation_duration);
         subIconOpacity.duration(m_theme->slide_animation_duration);
         m_icon->position = vec2(
-            m_theme->icon_offset.x + (m_theme->icon_spacing * m_idx) + m_offsetX,
+            m_theme->icon_offset.x + (m_theme->icon_spacing.x * m_idx) + m_offsetX,
             m_theme->icon_offset.y
         );
         m_icon->opacity = opacity;
@@ -53,7 +53,7 @@ namespace v {
         m_icon->render();
         if(m_theme->font) {
             vec3 c = hsl(m_theme->font_color);
-            vec2 textpos = m_icon->position + vec2(0.0f, 45.0f);
+            vec2 textpos = m_icon->position + m_theme->text_horizontal_icon_offset;
             if(m_theme->show_text_alignment_point) m_gpu->draw_point(textpos, 5, vec4(1,1,1,1));
             m_theme->font->print(textpos, m_text.c_str(), vec4(c.x, c.y, c.z, opacity), TEXT_ALIGN_X_CENTER_Y_CENTER);
         }
@@ -76,7 +76,7 @@ namespace v {
                     } else {
                         (c->opacity = 0.1f).then([c]() mutable { c->active = false; });
                     }
-                    c->offsetY(-m_theme->icon_spacing * m_rowIdx);
+                    c->offsetY(-m_theme->icon_spacing.y * m_rowIdx);
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace v {
         // move this column's children to the left and decrease opacity
         for(u8 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
-            item->positionX = -m_theme->icon_spacing;
+            item->positionX = -m_theme->icon_spacing.x;
             item->opacity = c == m_rowIdx ? 0.5f : 0.1f;
             item->textOpacityMultiplier = c == m_rowIdx ? 1.0f : 0.0f;
         }

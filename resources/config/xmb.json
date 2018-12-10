@@ -2,27 +2,10 @@
     "themes": [
         {
             "name": "default",
-            "color": {
-                "background": {
-                    "hue": 308.0,
-                    "saturation": 85.0,
-                    "lightness": 45.0
-                },
-                "wave": {
-                    "hue": 308.0,
-                    "saturation": 85.0,
-                    "lightness": 45.0
-                },
-                "font": {
-                    "hue": 0,
-                    "saturation": 0,
-                    "lightness": 100
-                },
-                "options_pane": {
-                    "hue": 308.0,
-                    "saturation": 85.0,
-                    "lightness": 45.0
-                }
+            "debug": {
+                "draw_icon_outline": false,
+                "draw_icon_align": false,
+                "draw_text_align": false
             },
             "font": {
                 "file": "resources/fonts/SQR721N.ttf",
@@ -34,30 +17,39 @@
                 "smoothing": {
                     "base": 0.5,
                     "epsilon": 0.004619
-                },
-                "column_icon_offset": {
-                    "x": 130,
-                    "y": 0
-                },
-                "current_option_icon_offset": {
-                    "x": 480,
-                    "y": 0
                 }
             },
-            "icons": {
-                "spacing": 160,
-                "vertical_offset": 136,
-                "current_icon_horizontal_offset": 192,
-                "slide_animation_duration": 0.125
+            "text": {
+                "offset": {
+                    "vertical_icons": { "x": 130, "y": 0 },
+                    "horizontal_icons": { "x": 0, "y": 45 },
+                    "option_value": { "x": 480, "y": 0 }
+                }
             },
-            "debug": {
-                "show_icon_alignment_point": false,
-                "show_text_alignment_point": false,
-                "show_icon_outlines": false
+            "icon": {
+                "animation": {
+                    "slide": {
+                        "duration": 0.125,
+                        "transition": "easeOutCubic"
+                    }
+                },
+                "spacing": { "x": 160, "y": 90 },
+                "offset": { "x": 160, "y": 100 }
+            },
+            "color": {
+                "background": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 },
+                "wave": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 },
+                "font": { "hue": 0, "saturation": 0, "lightness": 100 },
+                "options": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 }
             },
             "wave": {
                 "enabled": true,
-                "speed": 0.065
+                "speed": 0.065,
+                "opacity": 0.5,
+                "noise": {
+                    "frequency": 1.1,
+                    "octaves": 2
+                }
             }
         }
     ],
@@ -148,198 +140,489 @@
                     },
                     "items": [
                         {
-                            "label": "Background Wave",
-                            "description": "Hide or show the wave behind the icons",
-                            "setting": "theme.wave.enabled",
-                            "type": "select",
+                            "label": "Wave",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
                             },
-                            "options": [
+                            "items": [
                                 {
                                     "label": "Enabled",
-                                    "value": true
+                                    "description": "Hide or show the wave behind the icons",
+                                    "setting": "theme.wave.enabled",
+                                    "type": "select",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "options": [
+                                        {
+                                            "label": "Enabled",
+                                            "value": true
+                                        },
+                                        {
+                                            "label": "Disabled",
+                                            "value": false
+                                        }
+                                    ]
                                 },
                                 {
-                                    "label": "Disabled",
-                                    "value": false
+                                    "label": "Color",
+                                    "setting": "theme.color.wave",
+                                    "type": "color",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Opacity",
+                                    "setting": "theme.wave.opacity",
+                                    "type": "float",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Speed",
+                                    "setting": "theme.wave.speed",
+                                    "type": "float",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Tilt",
+                                    "setting": "theme.wave.tilt",
+                                    "type": "float",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Noise Parameters",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "items": [
+                                        {
+                                            "label": "Wave Noise Frequency",
+                                            "setting": "theme.wave.noise.frequency",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        },
+                                        {
+                                            "label": "Wave Noise Iterations",
+                                            "setting": "theme.wave.noise.octaves",
+                                            "type": "integer",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        }
+                                    ]
                                 }
                             ]
                         },
                         {
-                            "label": "Show Icon Outlines",
-                            "description": "Show the borders of each icon",
-                            "setting": "theme.debug.draw_icon_outline",
-                            "type": "select",
+                            "label": "Font",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
                             },
-                            "options": [
+                            "items": [
                                 {
-                                    "label": "Enabled",
-                                    "value": true
+                                    "label": "Size",
+                                    "setting": "theme.font.size",
+                                    "type": "float",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
                                 },
                                 {
-                                    "label": "Disabled",
-                                    "value": false
+                                    "label": "Smoothing",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "items": [
+                                        {
+                                            "label": "Base Value",
+                                            "setting": "theme.font.smoothing.base",
+                                            "type": "float",
+                                            "increment": {
+                                                "left_stick": 0.1,
+                                                "right_stick": 0.01
+                                            },
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        },
+                                        {
+                                            "label": "Epsilon",
+                                            "setting": "theme.font.smoothing.epsilon",
+                                            "type": "float",
+                                            "increment": {
+                                                "left_stick": 0.1,
+                                                "right_stick": 0.01
+                                            },
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        }
+                                    ]
                                 }
                             ]
                         },
                         {
-                            "label": "Show Icon Alignment Point",
-                            "description": "Show the point that should be at the center of each icon",
-                            "setting": "theme.debug.draw_icon_align",
-                            "type": "select",
+                            "label": "Icons",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
                             },
-                            "options": [
+                            "items": [
                                 {
-                                    "label": "Enabled",
-                                    "value": true
+                                    "label": "Icon Spacing",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "items": [
+                                        {
+                                            "label": "x",
+                                            "setting": "theme.icon.spacing.x",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        },
+                                        {
+                                            "label": "y",
+                                            "setting": "theme.icon.spacing.y",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        }
+                                    ]
                                 },
                                 {
-                                    "label": "Disabled",
-                                    "value": false
+                                    "label": "Icon Offset",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "items": [
+                                        {
+                                            "label": "x",
+                                            "setting": "theme.icon.offset.x",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        },
+                                        {
+                                            "label": "y",
+                                            "setting": "theme.icon.offset.y",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        }
+                                    ]
                                 }
                             ]
                         },
                         {
-                            "label": "Show Text Alignment Point",
-                            "description": "Show the alignment point for each text element. Position relative to text will vary based on the text's alignment mode",
-                            "setting": "theme.debug.draw_text_align",
-                            "type": "select",
+                            "label": "Colors",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
                             },
-                            "options": [
+                            "items": [
                                 {
-                                    "label": "Enabled",
-                                    "type": "list item",
-                                    "value": true
+                                    "label": "Background Color",
+                                    "setting": "theme.color.background",
+                                    "type": "color",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                
+                                {
+                                    "label": "Font Color",
+                                    "setting": "theme.color.font",
+                                    "type": "color",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
                                 },
                                 {
-                                    "label": "Disabled",
-                                    "type": "list item",
-                                    "value": false
+                                    "label": "Options Pane Color",
+                                    "setting": "theme.color.options",
+                                    "type": "color",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
+                                },
+                                {
+                                    "label": "Wave Color",
+                                    "setting": "theme.color.wave",
+                                    "type": "color",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    }
                                 }
                             ]
                         },
                         {
-                            "label": "Background Color",
-                            "setting": "theme.colors.background",
-                            "type": "color",
+                            "label": "Text",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Wave Color",
-                            "setting": "theme.colors.wave",
-                            "type": "color",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Font Color",
-                            "setting": "theme.colors.font",
-                            "type": "color",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Options Pane Color",
-                            "setting": "theme.colors.options",
-                            "type": "color",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Wave Speed",
-                            "setting": "theme.wave.speed",
-                            "type": "float",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Font Size",
-                            "setting": "theme.font.size",
-                            "type": "float",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Font Smoothing Base Value",
-                            "setting": "theme.font.smoothing.base",
-                            "type": "float",
-                            "increment": {
-                                "left_stick": 0.01,
-                                "right_stick": 0.001
                             },
+                            "items": [
+                              {
+                                  "label": "Horizontal Icon Offset",
+                                  "icon": {
+                                      "name": "user",
+                                      "scale": 0.2,
+                                      "offset": { "x": -149, "y": -120 }
+                                  },
+                                  "items": [
+                                      {
+                                          "label": "x",
+                                          "setting": "theme.text.offset.horizontal_icons.x",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      },
+                                      {
+                                          "label": "y",
+                                          "setting": "theme.text.offset.horizontal_icons.y",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      }
+                                  ]
+                              },
+                              {
+                                  "label": "Vertical Icon Offset",
+                                  "icon": {
+                                      "name": "user",
+                                      "scale": 0.2,
+                                      "offset": { "x": -149, "y": -120 }
+                                  },
+                                  "items": [
+                                      {
+                                          "label": "x",
+                                          "setting": "theme.text.offset.vertical_icons.x",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      },
+                                      {
+                                          "label": "y",
+                                          "setting": "theme.text.offset.vertical_icons.y",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      }
+                                  ]
+                              },
+                              {
+                                  "label": "Option Value Offset",
+                                  "icon": {
+                                      "name": "user",
+                                      "scale": 0.2,
+                                      "offset": { "x": -149, "y": -120 }
+                                  },
+                                  "items": [
+                                      {
+                                          "label": "x",
+                                          "setting": "theme.text.offset.option_value.x",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      },
+                                      {
+                                          "label": "y",
+                                          "setting": "theme.text.offset.option_value.y",
+                                          "type": "float",
+                                          "icon": {
+                                              "name": "user",
+                                              "scale": 0.2,
+                                              "offset": { "x": -149, "y": -120 }
+                                          }
+                                      }
+                                  ]
+                              }
+                            ]
+                        },
+                        {
+                            "label": "Animations",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Font Smoothing Epsilon",
-                            "setting": "theme.font.smoothing.epsilon",
-                            "type": "float",
-                            "increment": {
-                                "left_stick": 0.01,
-                                "right_stick": 0.001
                             },
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
+                            "items": [
+                                {
+                                    "label": "Icon Shift",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "items": [
+                                        {
+                                            "label": "Duration",
+                                            "setting": "theme.icon.animation.slide.duration",
+                                            "type": "float",
+                                            "icon": {
+                                                "name": "user",
+                                                "scale": 0.2,
+                                                "offset": { "x": -149, "y": -120 }
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
                         },
                         {
-                            "label": "Icon Spacing",
-                            "setting": "theme.icon.spacing",
-                            "type": "float",
+                            "label": "Debug",
                             "icon": {
                                 "name": "user",
                                 "scale": 0.2,
                                 "offset": { "x": -149, "y": -120 }
-                            }
-                        },
-                        {
-                            "label": "Animation Duration",
-                            "setting": "theme.icon.animation.slide",
-                            "type": "float",
-                            "icon": {
-                                "name": "user",
-                                "scale": 0.2,
-                                "offset": { "x": -149, "y": -120 }
-                            }
+                            },
+                            "items": [
+                                {
+                                    "label": "Show Icon Outlines",
+                                    "description": "Show the borders of each icon",
+                                    "setting": "theme.debug.draw_icon_outline",
+                                    "type": "select",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "options": [
+                                        {
+                                            "label": "Enabled",
+                                            "value": true
+                                        },
+                                        {
+                                            "label": "Disabled",
+                                            "value": false
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Show Icon Alignment Point",
+                                    "description": "Show the point that should be at the center of each icon",
+                                    "setting": "theme.debug.draw_icon_align",
+                                    "type": "select",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "options": [
+                                        {
+                                            "label": "Enabled",
+                                            "value": true
+                                        },
+                                        {
+                                            "label": "Disabled",
+                                            "value": false
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Show Text Alignment Point",
+                                    "description": "Show the alignment point for each text element. Position relative to text will vary based on the text's alignment mode",
+                                    "setting": "theme.debug.draw_text_align",
+                                    "type": "select",
+                                    "icon": {
+                                        "name": "user",
+                                        "scale": 0.2,
+                                        "offset": { "x": -149, "y": -120 }
+                                    },
+                                    "options": [
+                                        {
+                                            "label": "Enabled",
+                                            "type": "list item",
+                                            "value": true
+                                        },
+                                        {
+                                            "label": "Disabled",
+                                            "type": "list item",
+                                            "value": false
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },

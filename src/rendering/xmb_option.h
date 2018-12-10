@@ -11,6 +11,7 @@ using namespace std;
 #define OPTION_TYPE_LIST_ITEM 0
 #define OPTION_TYPE_COLOR     1
 #define OPTION_TYPE_FLOAT     2
+#define OPTION_TYPE_INTEGER   3
 
 namespace v {
     class XmbSubIcon;
@@ -19,7 +20,7 @@ namespace v {
     struct theme_data;
     class XmbOption : public InputReceiver {
         public:
-            XmbOption (u8 index, XmbSubIcon* parent, const string& label, const json& value, const string& type, theme_data* theme, Xmb* xmb, DeviceGpu* gpu);
+            XmbOption (u8 index, XmbSubIcon* parent, const string& label, const json& value, const string& type, const json& self, theme_data* theme, Xmb* xmb, DeviceGpu* gpu);
             ~XmbOption ();
             
             void became_visible ();
@@ -30,6 +31,7 @@ namespace v {
             u8 type () const { return m_typeInt; }
             
             const string& text () const { return m_text; }
+            string value_str () const;
             const json& value () const { return m_value; }
             void value (const json& value) { m_value = value; }
             
@@ -40,6 +42,7 @@ namespace v {
             Interpolator<f32> offsetY;
             Interpolator<f32> opacity;
         protected:
+            void set_from_json(const json& value);
             u8 m_idx;
             XmbSubIcon* m_parent;
             Xmb* m_xmb;
@@ -50,6 +53,8 @@ namespace v {
             vec3 m_hsl;
             f32 m_scalarValue;
             f32 m_dt;
+            f32 m_leftStickIncrement;
+            f32 m_rightStickIncrement;
             i32 m_integerValue;
             bool m_changed;
             theme_data* m_theme;

@@ -144,8 +144,8 @@ namespace v {
             m_drawShader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 2);
             m_drawShader->uniform("c");
             m_drawShader->build();
-            m_drawVertices = new GxmBuffer(512 * sizeof(clear_vertex));
-            m_drawIndices = new GxmBuffer(1024 * sizeof(u16));
+            m_drawVertices = new GxmBuffer(1024 * sizeof(clear_vertex));
+            m_drawIndices = new GxmBuffer(2048 * sizeof(u16));
             m_currentDrawIndexOffset = 0;
             m_currentDrawVertexOffset = 0;
         }

@@ -24,7 +24,7 @@ namespace v {
         expandedChild(NULL), m_parent(parent), m_xmbCol(xmbCol), m_gpu(gpu),
         hide(false), m_xmb(xmb), showing_options(false), m_optionsIdx(0),
         m_setting(setting),
-        positionX(level * theme->icon_spacing, 0.0f, interpolate::easeOutQuad),
+        positionX(level * theme->icon_spacing.x, 0.0f, interpolate::easeOutQuad),
         m_offsetY(0.0f, 0.0f, interpolate::easeOutQuad),
         opacity(idx == 0 ? 1.0f : 0.1f, 0.0f, interpolate::easeOutQuad),
         textOpacityMultiplier(1.0f, 0.0f, interpolate::easeOutQuad),
@@ -33,6 +33,7 @@ namespace v {
         m_icon = new XmbIcon(icon, iconScale, iconOffset, gpu, shader, theme);
     }
     XmbSubIcon::~XmbSubIcon () {
+        delete m_icon;
         for(auto i = items.begin();i != items.end();i++) delete (*i);
         for(auto i = options.begin();i != options.end();i++) delete (*i);
     }
@@ -48,7 +49,7 @@ namespace v {
         
         m_icon->position = vec2(
             rootX + positionX,
-            (m_theme->icon_offset.y + m_theme->icon_spacing) + (m_idx * m_theme->icon_spacing) + m_offsetY
+            (m_theme->icon_offset.y + m_theme->icon_spacing.y) + (m_idx * m_theme->icon_spacing.y) + m_offsetY
         );
         m_icon->opacity = opacity;
         m_icon->update(dt);
@@ -65,7 +66,7 @@ namespace v {
         m_icon->render();
         if(m_theme->font && !expanded) {
             vec3 c = hsl(m_theme->font_color);
-            vec2 pos = m_icon->position + m_theme->font_column_icon_offset;
+            vec2 pos = m_icon->position + m_theme->text_vertical_icon_offset;
             if(m_theme->show_text_alignment_point) m_gpu->draw_point(pos, 5, vec4(1,1,1,1));
             m_theme->font->print(
                 pos,
@@ -77,17 +78,15 @@ namespace v {
         
         if(m_theme->font && options.size() > 0 && items.size() == 0) {
             XmbOption* option = options[m_optionsIdx];
-            if(option->type() != OPTION_TYPE_COLOR) {
-                vec3 c = hsl(m_theme->font_color);
-                vec2 pos = m_icon->position + m_theme->current_option_icon_offset;
-                if(m_theme->show_text_alignment_point) m_gpu->draw_point(pos, 5, vec4(1,1,1,1));
-                m_theme->font->print(
-                    pos,
-                    option->text().c_str(),
-                    vec4(c.x, c.y, c.z, opacity * (f32)textOpacityMultiplier * 0.75f),
-                    TEXT_ALIGN_X_LEFT_Y_CENTER
-                );
-            }
+            vec3 c = hsl(m_theme->font_color);
+            vec2 pos = m_icon->position + m_theme->text_option_icon_offset;
+            if(m_theme->show_text_alignment_point) m_gpu->draw_point(pos, 5, vec4(1,1,1,1));
+            m_theme->font->print(
+                pos,
+                option->value_str().c_str(),
+                vec4(c.x, c.y, c.z, opacity * (f32)textOpacityMultiplier * 0.75f),
+                TEXT_ALIGN_X_LEFT_Y_CENTER
+            );
         }
     }
     void XmbSubIcon::shift (i8 direction) {
@@ -125,7 +124,7 @@ namespace v {
                     } else {
                         (c->opacity = 0.1f).then([c]() mutable { c->active = false; });
                     }
-                    c->offsetY(-m_theme->icon_spacing * m_rowIdx);
+                    c->offsetY(-m_theme->icon_spacing.y * m_rowIdx);
                 }
             }
         }
@@ -137,8 +136,7 @@ namespace v {
         
         // mark this as expanded so that the children are rendered immediately
         // (so they can fade in from 0)
-        this->expanded = true;
-        
+        expanded = true;
         
         // move this item's children to the center and increase their opacity
         for(u8 c = 0;c < items.size();c++) {
@@ -158,10 +156,13 @@ namespace v {
         // (so that they keep rendering until 0 opacity)
         for(u8 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
-            item->positionX = m_theme->icon_spacing;
-            (item->opacity = 0.0f).then([item, this]() mutable {
-                this->expanded = false;
-            });
+            item->positionX = m_theme->icon_spacing.x;
+            item->opacity = 0.0f;
+            if(c == items.size() - 1) {
+                item->opacity.then([item, this]() mutable {
+                    this->expanded = false;
+                });
+            }
         }
     }
     void XmbSubIcon::childExpanded () {
@@ -172,7 +173,7 @@ namespace v {
         // move all items from this row to the left and decrease opacity
         for(u8 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
-            item->positionX = -m_theme->icon_spacing;
+            item->positionX = -m_theme->icon_spacing.x;
             item->opacity = c == m_rowIdx ? 0.5f : 0.1f;
             item->textOpacityMultiplier = c == m_rowIdx ? 1.0f : 0.0f;
         }

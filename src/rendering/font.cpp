@@ -162,7 +162,6 @@ namespace v {
             m_lastIndexOffset = 0;
         }
         u16 len = strlen(text);
-        
         u16 pixelsPerPt = 220 / 72;
         u16 heightPx = pixelsPerPt * m_height;
         u16 glyphSize = heightPx * 2;

@@ -30,20 +30,26 @@ namespace v {
     class XmbWave;
     class ColorPicker;
     
+    // todo: rename & organize this
     typedef struct theme_data {
         bool wave_enabled;
         bool show_icon_alignment_point;
         bool show_text_alignment_point;
         bool show_icon_outlines;
         f32 wave_speed;
+        f32 wave_frequency; // 1.1
+        f32 wave_tilt; // 0.3
+        f32 wave_opacity; // 0.5
+        u8 wave_octaves; // 2
         f32 font_size;
         f32 font_smoothing_base;
         f32 font_smoothing_epsilon;
-        f32 icon_spacing;
         f32 slide_animation_duration;
+        vec2 icon_spacing;
         vec2 icon_offset;
-        vec2 font_column_icon_offset;
-        vec2 current_option_icon_offset;
+        vec2 text_vertical_icon_offset;
+        vec2 text_option_icon_offset;
+        vec2 text_horizontal_icon_offset;
         vec3 background_color;
         vec3 wave_color;
         vec3 font_color;
@@ -63,7 +69,7 @@ namespace v {
         json from;
         json to;
     } SettingChangedData;
-    typedef void (*SettingChangedCallback)(SettingChangedData*);
+    typedef json (*SettingChangedCallback)(SettingChangedData*);
     typedef struct SettingInitializeData {
         Xmb* xmb;
         Device* device;
@@ -113,7 +119,7 @@ namespace v {
             ColorPicker* color_input () const { return m_colorInput; }
             
             void register_setting(const string& settingPath, SettingChangedCallback changedCallback, SettingInitializeCallback initCallback);
-            void setting_changed(const string& settingPath, const json& value, const json& last);
+            json setting_changed(const string& settingPath, const json& value, const json& last);
             
             
             void update (f32 dt);
@@ -121,6 +127,7 @@ namespace v {
             virtual void onButtonDown(SceCtrlButtons btn);
         
         protected:
+            void recursive_read_theme(const string& path, const json& value);
             // non-persistent state
             i8 m_colIdx;
             Interpolator<f32> m_offsetX;

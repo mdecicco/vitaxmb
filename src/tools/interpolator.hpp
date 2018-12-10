@@ -3,6 +3,9 @@
 #include <psp2/rtc.h>
 #include <functional>
 
+#include <common/debugLog.h>
+#define printf debugLog
+
 namespace v {
     typedef f32 (*InterpolationFactorCallback)(f32);
     
@@ -60,9 +63,10 @@ namespace v {
             }
             
             Interpolator& operator = (const t& value) {
+                if(m_startTick.tick != 0) m_initial = *this;
+                else m_useFinishedCb = false;
                 sceRtcGetCurrentTick(&m_startTick);
                 m_final = value;
-                m_useFinishedCb = false;
                 return *this;
             }
             operator t() {

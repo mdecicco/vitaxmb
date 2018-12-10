@@ -82,10 +82,10 @@ namespace v {
         return &((xmbWaveVertex*)m_vertices->data())[(z * m_length) + x];
     }
     f32 XmbWave::heightAt(u32 x, u32 z) {
-        f32 frequency = 1.1f;//1.0f + (cos(m_noise_x * 0.2f) * 0.5f);
+        f32 frequency = m_theme->wave_frequency;//1.0f + (cos(m_noise_x * 0.2f) * 0.5f);
         f32 fw = f32(m_width) / frequency;
         f32 fl = f32(m_length) / frequency;
-        return m_noise.octaveNoise0_1((x / fw) + m_noise_x, (z / fl) + m_noise_y, 2);
+        return m_noise.octaveNoise0_1((x / fw) + m_noise_x, (z / fl) + m_noise_y, m_theme->wave_octaves);
     }
     void XmbWave::update (f32 dt) {
         m_noise_x += m_theme->wave_speed * dt;
@@ -95,7 +95,7 @@ namespace v {
         for(u32 w = 0;w < m_width;w++) {
             for(u32 l = 0;l < m_length;l++) {
                 xmbWaveVertex* v = vertexAt(w, l);
-                v->y = ((f32(w) / f32(m_width - 1)) * 0.3f) + heightAt(w, l) - 0.7f;
+                v->y = ((f32(w) / f32(m_width - 1)) * m_theme->wave_tilt) + heightAt(w, l) - 0.7f;
             }
         }
         
@@ -126,7 +126,7 @@ namespace v {
         vec3 c = hsl(m_theme->wave_color);
         m_shader->enable();
         m_shader->vertices(m_vertices->data());
-        m_shader->uniform4f("wave_color", vec4(c.x, c.y, c.z, 0.5f));
+        m_shader->uniform4f("wave_color", vec4(c.x, c.y, c.z, m_theme->wave_opacity));
         sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
         m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLES, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), m_indexCount);
     }

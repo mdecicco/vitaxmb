@@ -19,7 +19,9 @@ namespace v {
                     const string& text, GxmShader* shader, DeviceGpu* gpu,
                     theme_data* theme, Xmb* xmb);
             ~XmbCol ();
-            void offsetX(f32 offset);
+            
+            const string& text () const { return m_text; }
+            void offsetX (f32 offset);
             void update (f32 dt);
             void render ();
             void shift (i8 direction);
