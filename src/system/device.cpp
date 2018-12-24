@@ -48,8 +48,8 @@ namespace v {
             sceKernelExitProcess(0);
         }
     }
-    File* Device::open_file(const char* file, const char* mode) {
-        File* fp = new File(file, mode, this);
+    File* Device::open_file(const std::string& file, const char* mode, bool relative) {
+        File* fp = new File(file.c_str(), mode, this, relative);
         if(fp->bad()) {
             delete fp;
             return NULL;
@@ -57,8 +57,8 @@ namespace v {
         
         return fp;
     }
-    ConfigFile* Device::open_config (const char* name, bool create) {
-        ConfigFile* fp = new ConfigFile(name, create, this);
+    ConfigFile* Device::open_config (const std::string& name, bool create) {
+        ConfigFile* fp = new ConfigFile(name.c_str(), create, this);
         if(fp->bad()) {
             delete fp;
             return NULL;

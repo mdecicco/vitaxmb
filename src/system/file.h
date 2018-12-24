@@ -10,7 +10,7 @@ namespace v {
     class Device;
     class File {
         public:
-            File (const char* filename, const char* mode, Device* dev);
+            File (const char* filename, const char* mode, Device* dev, bool relative = true);
             ~File ();
             
             void offset (SceOff offset);
@@ -27,11 +27,14 @@ namespace v {
                 return write(&data, sizeof(t));
             }
             template<typename t>
-            bool read(t& data) {
+            bool read (t& data) {
                 return read(&data, sizeof(t));
             }
             
+            std::string read_line ();
+            
             bool bad () const { return !m_fp; }
+            bool end () const { return feof(m_fp) || m_offset == m_size; }
         
         protected:
             FILE* m_fp;

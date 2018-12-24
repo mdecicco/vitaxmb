@@ -8,6 +8,8 @@
 #include <system/file.h>
 #include <system/config.h>
 
+#include <string>
+
 namespace v {
     class Device {
         public:
@@ -18,8 +20,8 @@ namespace v {
             
             void terminate (bool immediate = false);
             
-            File* open_file(const char* file, const char* mode);
-            ConfigFile* open_config(const char* name, bool create = false);
+            File* open_file(const std::string& file, const char* mode, bool relative = true);
+            ConfigFile* open_config(const std::string& name, bool create = false);
             
             DeviceInput& input () { return *m_input; }
             DeviceScreen& screen () { return *m_screen; }

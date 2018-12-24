@@ -6,6 +6,7 @@
 #include <rendering/xmb_icon.h>
 #include <rendering/xmb_column.h>
 #include <rendering/xmb_option.h>
+#include <rendering/xmb_options_pane.h>
 #include <rendering/color_picker.h>
 
 #include <math.h>
@@ -16,14 +17,14 @@ using namespace std;
 #define printf debugLog
 
 namespace v {
-    XmbSubIcon::XmbSubIcon (u8 level, u8 idx, const string& setting, GxmTexture* icon, f32 iconScale, const vec2& iconOffset,
-                const string& text, const string& desc, GxmShader* shader, DeviceGpu* gpu,
+    XmbSubIcon::XmbSubIcon (u8 level, u16 idx, const string& setting, GxmTexture* icon,
+                f32 iconScale, const vec2& iconOffset, const string& text,
+                const string& desc, GxmShader* shader, DeviceGpu* gpu,
                 theme_data* theme, XmbSubIcon* parent, XmbCol* xmbCol, Xmb* xmb) :
-        m_idx(idx), m_shader(shader), m_text(text), active(false), m_rowIdx(0),
-        m_level(level), expanded(false), m_theme(theme), m_description(desc),
-        expandedChild(NULL), m_parent(parent), m_xmbCol(xmbCol), m_gpu(gpu),
-        hide(false), m_xmb(xmb), showing_options(false), m_optionsIdx(0),
-        m_setting(setting),
+        m_level(level), m_idx(idx), m_shader(shader), m_text(text), active(false),
+        m_rowIdx(0), expanded(false), m_theme(theme), m_description(desc),
+        expandedChild(NULL), m_parent(parent), m_xmbCol(xmbCol), m_gpu(gpu), hide(false),
+        m_xmb(xmb), showing_options(false), m_optionsIdx(0), m_setting(setting),
         positionX(level * theme->icon_spacing.x, 0.0f, interpolate::easeOutQuad),
         m_offsetY(0.0f, 0.0f, interpolate::easeOutQuad),
         opacity(idx == 0 ? 1.0f : 0.1f, 0.0f, interpolate::easeOutQuad),
@@ -54,14 +55,14 @@ namespace v {
         m_icon->opacity = opacity;
         m_icon->update(dt);
         
-        if(expanded) for(u8 c = 0;c < items.size();c++) items[c]->update(rootX, dt);
+        if(expanded) for(u16 c = 0;c < items.size();c++) items[c]->update(rootX, dt);
         else if(showing_options) {
-            for(u8 c = 0;c < options.size();c++) options[c]->update(dt);
+            for(u16 c = 0;c < options.size();c++) options[c]->update(dt);
         }
     }
     void XmbSubIcon::render () {
         if(hide) return;
-        if(expanded) for(u8 c = 0;c < items.size();c++) items[c]->render();
+        if(expanded) for(u16 c = 0;c < items.size();c++) items[c]->render();
         
         m_icon->render();
         if(m_theme->font && !expanded) {
@@ -110,13 +111,13 @@ namespace v {
         }
         else if(expandedChild) expandedChild->shift(direction);
         else {
-            u8 lastRow = m_rowIdx;
+            u16 lastRow = m_rowIdx;
             m_rowIdx += direction;
-            if (m_rowIdx >= (i8)items.size()) m_rowIdx = items.size() - 1;
+            if (m_rowIdx >= (u16)items.size()) m_rowIdx = items.size() - 1;
             else if (m_rowIdx < 0) m_rowIdx = 0;
             
             if(lastRow != m_rowIdx) {
-                for(u8 i = 0;i < items.size();i++) {
+                for(u16 i = 0;i < items.size();i++) {
                     XmbSubIcon* c = items[i];
                     if(i == m_rowIdx) {
                         c->active = true;
@@ -139,7 +140,7 @@ namespace v {
         expanded = true;
         
         // move this item's children to the center and increase their opacity
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             item->positionX = 0.0f;
             item->opacity = c == m_rowIdx ? 1.0f : 0.1f;
@@ -154,7 +155,7 @@ namespace v {
         // move this item's children to the right and decrease their opacity
         // also make this as not expanded once the animation is done
         // (so that they keep rendering until 0 opacity)
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             item->positionX = m_theme->icon_spacing.x;
             item->opacity = 0.0f;
@@ -171,7 +172,7 @@ namespace v {
         expandedChild = items[m_rowIdx];
         
         // move all items from this row to the left and decrease opacity
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             item->positionX = -m_theme->icon_spacing.x;
             item->opacity = c == m_rowIdx ? 0.5f : 0.1f;
@@ -187,7 +188,7 @@ namespace v {
         expandedChild = NULL;
         
         // move all items from this row to the center and increase opacity
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             item->positionX = 0.0f;
             item->opacity = c == m_rowIdx ? 1.0f : 0.1f;
@@ -237,7 +238,7 @@ namespace v {
         }
     }
     void XmbSubIcon::hideIcons () {
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             (item->opacity = 0.0f).then([item]() mutable {
                 item->hide = !item->active;
@@ -245,7 +246,7 @@ namespace v {
         }
     }
     void XmbSubIcon::showIcons () {
-        for(u8 c = 0;c < items.size();c++) {
+        for(u16 c = 0;c < items.size();c++) {
             XmbSubIcon* item = items[c];
             item->opacity = c == m_rowIdx ? 0.5f : 0.1f;
             item->hide = false;

@@ -18,7 +18,7 @@ namespace v {
     
     class XmbSubIcon {
         public:
-            XmbSubIcon (u8 level, u8 idx, const string& setting, GxmTexture* icon,
+            XmbSubIcon (u8 level, u16 idx, const string& setting, GxmTexture* icon,
                         f32 iconScale, const vec2& iconOffset, const std::string& text,
                         const std::string& desc, GxmShader* shader, DeviceGpu* gpu,
                         theme_data* theme, XmbSubIcon* parent, XmbCol* xmbCol, Xmb* xmb);
@@ -55,7 +55,7 @@ namespace v {
         protected:
             friend class Xmb;
             u8 m_level;
-            u8 m_idx;
+            u16 m_idx;
             i8 m_rowIdx;
             i8 m_optionsIdx;
             Interpolator<f32> m_offsetY;

@@ -1,7 +1,69 @@
 {
     "themes": [
         {
-            "name": "default",
+            "name": "Default",
+            "theme_icon": {
+                "name": "theme",
+                "scale": 0.2,
+                "offset": { "x": -174, "y": -137 }
+            },
+            "debug": {
+                "draw_icon_outline": false,
+                "draw_icon_align": false,
+                "draw_text_align": false
+            },
+            "font": {
+                "file": "resources/fonts/SQR721N.ttf",
+                "shader": {
+                    "vertex": "resources/shaders/xmb_font_v.gxp",
+                    "fragment": "resources/shaders/xmb_font_f.gxp"
+                },
+                "size": 7.0,
+                "smoothing": {
+                    "base": 0.5,
+                    "epsilon": 0.004619
+                }
+            },
+            "text": {
+                "offset": {
+                    "vertical_icons": { "x": 130, "y": 0 },
+                    "horizontal_icons": { "x": 0, "y": 45 },
+                    "option_value": { "x": 480, "y": 0 }
+                }
+            },
+            "icon": {
+                "animation": {
+                    "slide": {
+                        "duration": 0.125,
+                        "transition": "easeOutCubic"
+                    }
+                },
+                "spacing": { "x": 160, "y": 90 },
+                "offset": { "x": 160, "y": 100 }
+            },
+            "color": {
+                "background": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 },
+                "wave": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 },
+                "font": { "hue": 0, "saturation": 0, "lightness": 100 },
+                "options": { "hue": 308.0, "saturation": 85.0, "lightness": 45.0 }
+            },
+            "wave": {
+                "enabled": true,
+                "speed": 0.065,
+                "opacity": 0.5,
+                "noise": {
+                    "frequency": 1.1,
+                    "octaves": 2
+                }
+            }
+        },
+        {
+            "name": "Dark",
+            "theme_icon": {
+                "name": "theme",
+                "scale": 0.2,
+                "offset": { "x": -174, "y": -137 }
+            },
             "debug": {
                 "draw_icon_outline": false,
                 "draw_icon_align": false,
@@ -53,7 +115,7 @@
             }
         }
     ],
-    "theme": "default",
+    "theme": "Default",
     "icons": [
         {
             "name": "settings",
@@ -139,6 +201,15 @@
                         "offset": { "x": -174, "y": -137 }
                     },
                     "items": [
+                        {
+                            "label": "Presets",
+                            "icon": {
+                                "name": "user",
+                                "scale": 0.2,
+                                "offset": { "x": -149, "y": -120 }
+                            },
+                            "item_source": "sources.themes"
+                        },
                         {
                             "label": "Wave",
                             "icon": {
@@ -725,7 +796,18 @@
                 "name": "game",
                 "scale": 0.3,
                 "offset": { "x": -144, "y": -140 }
-            }
+            },
+            "items": [
+                {
+                    "label": "ux0",
+                    "icon": {
+                        "name": "game",
+                        "scale": 0.2,
+                        "offset": { "x": -144, "y": -140 }
+                    },
+                    "item_source": "sources.games_ux0"
+                }
+            ]
         },
         {
             "label": "Network",

@@ -28,6 +28,7 @@ namespace v {
     class XmbOption;
     class XmbSubIcon;
     class XmbWave;
+    class XmbOptionsPane;
     class ColorPicker;
     
     // todo: rename & organize this
@@ -70,37 +71,31 @@ namespace v {
         json to;
     } SettingChangedData;
     typedef json (*SettingChangedCallback)(SettingChangedData*);
+    
     typedef struct SettingInitializeData {
         Xmb* xmb;
         Device* device;
         theme_data* theme;
     } SettingInitializeData;
     typedef json (*SettingInitializeCallback)(SettingInitializeData*);
+    
     typedef struct setting {
         SettingChangedCallback changed;
         SettingInitializeCallback initialize;
     } setting;
     
-    class XmbOptionsPane {
-        public:
-            XmbOptionsPane (DeviceGpu* gpu, theme_data* theme);
-            ~XmbOptionsPane ();
-            
-            void update (f32 dt);
-            void render ();
-            
-            Interpolator<f32> offsetX;
-            Interpolator<f32> opacity;
-            
-            function<void()> renderCallback;
-            bool hide;
-        protected:
-            DeviceGpu* m_gpu;
-            theme_data* m_theme;
-            GxmBuffer* m_indices;
-            GxmBuffer* m_vertices;
-            GxmShader* m_shader;
-    };
+    typedef struct IconSourceData {
+        Xmb* xmb;
+        u8 level;
+        Device* device;
+        theme_data* theme;
+        XmbSubIcon* parent;
+        XmbCol* column;
+    } IconSourceData;
+    typedef vector<XmbSubIcon*> (*IconSourceCallback)(IconSourceData*);
+    typedef struct icon_source {
+        IconSourceCallback get_icons;
+    } icon_source;
     
     class Xmb : public InputReceiver {
         public:
@@ -112,15 +107,19 @@ namespace v {
             void load_icons ();
             void load_columns ();
             void load_column_items(XmbCol* col, json& items);
-            XmbSubIcon* load_menu_item(u8 level, u8 index, XmbCol* column, XmbSubIcon* parent, json& item);
+            
+            XmbSubIcon* load_menu_item(u8 level, u16 index, XmbCol* column, XmbSubIcon* parent, json& item);
             XmbOption* load_menu_option(u8 index, XmbSubIcon* parent, json& option);
             GxmTexture* get_icon(const string& name);
             XmbOptionsPane* options_pane () const { return m_options; }
             ColorPicker* color_input () const { return m_colorInput; }
+            GxmShader* icon_shader () const { return m_iconShader; }
+            ConfigFile* config () const { return m_config; }
             
             void register_setting(const string& settingPath, SettingChangedCallback changedCallback, SettingInitializeCallback initCallback);
             json setting_changed(const string& settingPath, const json& value, const json& last);
             
+            void register_icon_source(const string& sourcePath, IconSourceCallback sourceCallback);
             
             void update (f32 dt);
             void render ();
@@ -140,6 +139,7 @@ namespace v {
             XmbWave* m_wave;
             unordered_map<string, GxmTexture*> m_icons;
             unordered_map<string, setting> m_settings;
+            unordered_map<string, icon_source> m_sources;
             vector<XmbCol*> m_cols;
             ColorPicker* m_colorInput;
             

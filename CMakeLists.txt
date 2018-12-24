@@ -21,7 +21,7 @@ set(VITA_TITLEID  "SHELL6969")
 SET(PSVITAIP 192.168.1.16)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -Wno-psabi")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-permissive -Wno-psabi -Wno-pointer-arith")
 set(PSP2CGC /usr/local/vitasdk/bin/psp2cgc.exe)
 
 include_directories(

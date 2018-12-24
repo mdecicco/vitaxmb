@@ -5,89 +5,15 @@
 #include <rendering/xmb_sub_icon.h>
 #include <rendering/xmb_option.h>
 #include <rendering/xmb_wave.h>
+#include <rendering/xmb_options_pane.h>
 #include <rendering/color_picker.h>
 #include <common/debugLog.h>
 #define printf debugLog
 
 #include <xmb_settings.h>
+#include <xmb_sources.h>
 
 namespace v {
-    typedef struct xmbOptionsVertex {
-        xmbOptionsVertex (float _x, float _y, float _ldist) : x(_x), y(_y), ldist(_ldist) { }
-        xmbOptionsVertex (const xmbOptionsVertex& v) : x(v.x), y(v.y), ldist(v.ldist) { }
-        ~xmbOptionsVertex () { }
-        f32 x, y, ldist;
-    } xmbOptionsVertex;
-    
-    XmbOptionsPane::XmbOptionsPane (DeviceGpu* gpu, theme_data* theme) :
-        m_gpu(gpu), m_theme(theme), hide(true),
-        offsetX(0.0f, 0.0f, interpolate::easeOutCubic),
-        opacity(0.0f, 0.0f, interpolate::easeOutCubic)
-    {
-        m_shader = gpu->load_shader("resources/shaders/xmb_options_v.gxp", "resources/shaders/xmb_options_f.gxp", sizeof(xmbOptionsVertex));
-        if(m_shader) {
-            m_shader->attribute("pos", SCE_GXM_ATTRIBUTE_FORMAT_F32, 4, 3);
-            m_shader->uniform("c");
-            SceGxmBlendInfo blend_info;
-            blend_info.colorMask = SCE_GXM_COLOR_MASK_ALL;
-            blend_info.colorFunc = SCE_GXM_BLEND_FUNC_ADD;
-            blend_info.alphaFunc = SCE_GXM_BLEND_FUNC_ADD;
-            blend_info.colorSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA;
-            blend_info.colorDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            blend_info.alphaSrc  = SCE_GXM_BLEND_FACTOR_SRC_ALPHA;
-            blend_info.alphaDst  = SCE_GXM_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            m_shader->build(&blend_info);
-            
-            m_indices = new GxmBuffer(4 * sizeof(u16));
-            m_indices->write((u16)0);
-            m_indices->write((u16)1);
-            m_indices->write((u16)3);
-            m_indices->write((u16)2);
-            
-            m_vertices = new GxmBuffer(4 * sizeof(xmbOptionsVertex));
-            m_vertices->write(xmbOptionsVertex(960.0f, 0.0f, 0.0f));
-            m_vertices->write(xmbOptionsVertex(960.0f + 300.0f, 0.0f, 1.0f));
-            m_vertices->write(xmbOptionsVertex(960.0f + 300.0f, 544.0f, 1.0f));
-            m_vertices->write(xmbOptionsVertex(960.0f, 544.0f, 0.0f));
-        }
-    }
-    XmbOptionsPane::~XmbOptionsPane () {
-        if(m_shader) {
-            delete m_vertices;
-            delete m_indices;
-            delete m_shader;
-        }
-    }
-    
-    void XmbOptionsPane::update (f32 dt) {
-        opacity.duration(m_theme->slide_animation_duration);
-        offsetX.duration(m_theme->slide_animation_duration);
-        
-        f32 x = offsetX;
-        vec2 sz = vec2(300.0f, 544.0f);
-        
-        xmbOptionsVertex* vertices = (xmbOptionsVertex*)m_vertices->data();
-        vertices[0].x = 960.0f + x;
-        vertices[0].y = 0.0f;
-        
-        vertices[1].x = 960.0f + sz.x + x;
-        vertices[1].y = 0.0f;
-        
-        vertices[2].x = 960.0f + sz.x + x;
-        vertices[2].y = 544.0f;
-        
-        vertices[3].x = 960.0f + x;
-        vertices[3].y = 544.0f;
-    }
-    void XmbOptionsPane::render () {
-        m_shader->enable();
-        m_shader->vertices(m_vertices->data());
-        m_shader->uniform4f("c", vec4(hsl(m_theme->options_pane_color), opacity * 0.75f));
-        sceGxmSetFrontDepthFunc(m_gpu->context()->get(), SCE_GXM_DEPTH_FUNC_ALWAYS);
-        m_gpu->render(SCE_GXM_PRIMITIVE_TRIANGLE_STRIP, SCE_GXM_INDEX_FORMAT_U16, m_indices->data(), 4);
-        if(renderCallback) renderCallback();
-    }
-
     Xmb::Xmb (DeviceGpu* gpu) : m_gpu(gpu), m_colIdx(0), m_offsetX(0.0f, 0.0f, interpolate::easeOutCubic) {
         m_bgShader = gpu->load_shader("resources/shaders/xmb_back_v.gxp", "resources/shaders/xmb_back_f.gxp", sizeof(f32) * 2);
         if(m_bgShader) {
@@ -118,6 +44,7 @@ namespace v {
         if(m_config) {
             json& config = m_config->data();
             register_settings(this);
+            register_sources(this);
             theme(config.value("theme", "default"));
             u8 default_column = config.value("default_column", 0);
             load_icons();
@@ -255,7 +182,7 @@ namespace v {
         }
     }
     
-    XmbSubIcon* Xmb::load_menu_item (u8 level, u8 index, XmbCol* column, XmbSubIcon* parent, json& item) {
+    XmbSubIcon* Xmb::load_menu_item (u8 level, u16 index, XmbCol* column, XmbSubIcon* parent, json& item) {
         string label = item.value("label", "");
         string modifiesSetting = item.value("setting", "");
         string description = item.value("description", "");
@@ -333,6 +260,21 @@ namespace v {
                 // This item has children that should be displayed as a column of icons
                 xmbIcon->items.push_back(load_menu_item(0, xmbIcon->items.size(), column, xmbIcon, *it));
             }
+        } else if(item.value<json>("item_source", NULL).is_string()) {
+            string sourcePath = item.value<string>("item_source", "");
+            auto callbacks = m_sources.find(sourcePath);
+            if(callbacks != m_sources.end()) {
+                IconSourceData d;
+                d.xmb = this;
+                d.device = m_gpu->device();
+                d.theme = &m_theme;
+                d.level = level;
+                d.parent = parent;
+                d.column = column;
+                xmbIcon->items = (callbacks->second.get_icons)(&d);
+            } else {
+                printf("Icon source '%s' is not registered\n", sourcePath.c_str());
+            }
         }
         return xmbIcon;
     }
@@ -357,10 +299,11 @@ namespace v {
         printf("An icon with the name '%s' was not loaded\n", name.c_str());
         return NULL;
     }
+    
     void Xmb::register_setting(const string& settingPath, SettingChangedCallback changedCallback, SettingInitializeCallback initCallback) {
         auto existing = m_settings.find(settingPath);
         if(existing != m_settings.end()) {
-            printf("Callback for %s already registered.\n", settingPath.c_str());
+            printf("Callbacks for setting %s already registered.\n", settingPath.c_str());
             return;
         }
         setting s;
@@ -382,6 +325,16 @@ namespace v {
         d.from = last;
         d.to = value;
         return (callback->second.changed)(&d);
+    }
+    void Xmb::register_icon_source(const string& sourcePath, IconSourceCallback sourceCallback) {
+        auto existing = m_sources.find(sourcePath);
+        if(existing != m_sources.end()) {
+            printf("Callbacks for icon source %s already registered\n", sourcePath.c_str());
+            return;
+        }
+        icon_source s;
+        s.get_icons = sourceCallback;
+        m_sources[sourcePath] = s;
     }
 
     void Xmb::update (f32 dt) {

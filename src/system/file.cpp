@@ -7,10 +7,12 @@ using namespace std;
 #define printf debugLog
 
 namespace v {
-    File::File (const char* filename, const char* mode, Device* dev) :
+    File::File (const char* filename, const char* mode, Device* dev, bool relative) :
         m_fp(NULL), m_filename(filename), m_mode(mode), m_dev(dev), m_offset(0)
     {
-        m_filename = string("ux0:/app/") + m_dev->game_id() + "/" + filename;
+        if (relative) m_filename = string("ux0:/app/") + m_dev->game_id() + "/" + filename;
+        else m_filename = filename;
+        
         m_fp = fopen(m_filename.c_str(), mode);
         if(!m_fp) printf("Failed to open file <%s> in %s mode\n", m_filename.c_str(), mode);
         else {
@@ -60,6 +62,16 @@ namespace v {
         m_offset += blocksWritten * size;
         if(m_offset > m_size) m_size = m_offset;
         return blocksWritten == 1;
+    }
+    
+    string File::read_line () {
+        string line;
+        char c;
+        while(read(c) && !feof(m_fp)) {
+            if(c == '\n' || c == '\r') break;
+            line += c;
+        }
+        return line;
     }
     
     bool operator < (const SceDateTime& a, const SceDateTime& b) { time_t at, bt; sceRtcGetTime_t(&a, &at); sceRtcGetTime_t(&b, &bt); return at < bt; }
