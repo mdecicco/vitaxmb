@@ -1,4 +1,5 @@
 # vitaxmb
+[logo]: https://i.imgur.com/ApEJoB4.png
 A more visually appealing shell for the PS Vita
 
 # Notes
