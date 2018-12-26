@@ -1,16 +1,17 @@
 # vitaxmb
+![Alt text](https://i.imgur.com/ApEJoB4.png)
 A more visually appealing shell for the PS Vita
 
 # Notes
 This doesn't do anything useful yet
 
 # Currently working on
-- Implementing XMB Options pane functions for editing settings and triggering actions
-- Saving changes made during runtime automatically, and regularly
+- Rendering UTF-8 characters
+- Rendering list of installed applications by partition
 
 # Features
 - Customizable XMB options
-- Customizable theme
+- Customizable themes
 - TTF font support
 - Font glyph map caching (rendering glyphs from a TTF to a SDF glyph map turned out to be expensive)
 
