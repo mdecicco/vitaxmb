@@ -8,7 +8,6 @@ This doesn't do anything useful yet
 # Currently working on
 - Rendering list of installed applications by partition
 - Finding another algorithm for generating SDF bitmaps
-- Adding padding between font glyphs to prevent stray pixels in text
 
 # Features
 - Customizable XMB options
@@ -17,6 +16,9 @@ This doesn't do anything useful yet
 - Font glyph map caching (rendering glyphs from a TTF to a SDF glyph map turned out to be expensive)
 
 # Coming up
+- Adding padding between font glyphs to prevent stray pixels in text
+- Render all the UI elements in the proper order
+- Clean up the UI code in general
 - USB/FTP menu item with option for which device to mount
 - Loading a list of vita/psp games and showing them in the XMB (with icons/backgrounds but probably not PMFs)
 - Figuring out why rendered text is ugly af
