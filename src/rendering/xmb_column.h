@@ -20,7 +20,7 @@ namespace v {
                     theme_data* theme, Xmb* xmb);
             ~XmbCol ();
             
-            const string& text () const { return m_text; }
+            const std::string& text () const { return m_text; }
             void offsetX (f32 offset);
             void update (f32 dt);
             void render ();
@@ -45,7 +45,7 @@ namespace v {
             XmbIcon* m_icon;
             GxmShader* m_shader;
             DeviceGpu* m_gpu;
-            string m_text;
+            std::string m_text;
             theme_data* m_theme;
             Xmb* m_xmb;
     };

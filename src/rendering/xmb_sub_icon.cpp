@@ -18,8 +18,8 @@ using namespace std;
 
 namespace v {
     XmbSubIcon::XmbSubIcon (u8 level, u16 idx, const string& setting, GxmTexture* icon,
-                f32 iconScale, const vec2& iconOffset, const string& text,
-                const string& desc, GxmShader* shader, DeviceGpu* gpu,
+                f32 iconScale, const vec2& iconOffset, const std::string& text,
+                const std::string& desc, GxmShader* shader, DeviceGpu* gpu,
                 theme_data* theme, XmbSubIcon* parent, XmbCol* xmbCol, Xmb* xmb) :
         m_level(level), m_idx(idx), m_shader(shader), m_text(text), active(false),
         m_rowIdx(0), expanded(false), m_theme(theme), m_description(desc),

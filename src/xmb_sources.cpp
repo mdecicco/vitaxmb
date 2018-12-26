@@ -50,9 +50,9 @@ namespace v {
                                 data->column,
                                 data->xmb
                             ));
+                            index++;
                         }
                     }
-                    index++;
                 }
             }
             
@@ -66,6 +66,7 @@ namespace v {
             if(dfd >= 0) {
                 SceIoDirent dir;
                 memset(&dir, 0, sizeof(SceIoDirent));
+                u16 index = 0;
                 while(sceIoDread(dfd, &dir) > 0) {
                     if(SCE_S_ISDIR(dir.d_stat.st_mode)) {
                         string path = "ux0:/app/";
@@ -74,6 +75,28 @@ namespace v {
                         
                         vita_application app;
                         parse_application(data->device, path, &app);
+                        if(app.valid && app.has_icon) {
+                            GxmTexture* icon_tex = data->device->gpu().load_texture(app.icon_path, false);
+                            if(icon_tex) {
+                                items.push_back(new XmbSubIcon(
+                                    data->level,
+                                    index,
+                                    string(),
+                                    icon_tex,
+                                    0.5f,
+                                    vec2(-135.0f, -79.0f),
+                                    string(app.title),
+                                    string(),
+                                    data->xmb->icon_shader(),
+                                    &data->device->gpu(),
+                                    data->theme,
+                                    data->parent,
+                                    data->column,
+                                    data->xmb
+                                ));
+                                index++;
+                            }
+                        }
                     }
                 }
                 sceIoDclose(dfd);

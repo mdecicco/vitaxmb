@@ -16,6 +16,7 @@ namespace v {
             void offset (SceOff offset);
             SceOff offset () const { return m_offset; }
             SceSize size () const { return m_size; }
+            bool clear (bool enableWrite);
             const SceDateTime created_on () const { return m_stat.st_ctime; }
             const SceDateTime last_accessed () const { return m_stat.st_atime; }
             const SceDateTime last_modified () const { return m_stat.st_mtime; }

@@ -4,10 +4,11 @@
 #define printf debugLog
 
 #include <stdio.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 using namespace std;
 
 namespace v {
-    
     /* Thank you TheFlow. I could have written this myself but I am lazy. */
     #define SFO_MAGIC 0x46535000
 
@@ -75,59 +76,77 @@ namespace v {
         printf("String <%s> not found in SFO\n", name);
         return false;
     }
+    
+    u8* contents(Device* device, const string& file, const char* mode, u16* len = NULL) {
+        File* fp = device->open_file(file, mode, false);
+        if(!fp) {
+            printf("Failed to find <%s>\n", file.c_str());
+            return NULL;
+        }
+        
+        if(len) *len = (u16)fp->size();
+        u8* data = new u8[fp->size() + 1];
+        if(!fp->read(data, fp->size())) {
+            delete [] data;
+            return NULL;
+        }
+        data[fp->size() + 1] = 0;
+        delete fp;
+        
+        return data;
+    }
+    
+    xmlNode* find(xmlNode* in, const char* name) {
+        if(!in) return NULL;
+        if(strcmp(name, (CString)in->name) == 0) return in;
+        xmlNode* cur = in->children;
+        while(cur) {
+            if(strcmp(name, (CString)cur->name) == 0) return cur;
+            cur = cur->next;
+        }
+        return NULL;
+    }
 
     void parse_application(Device* device, const string& path, vita_application* app) {
         memset(app, 0, sizeof(vita_application));
-        File* param_sfo = device->open_file(path + "/sce_sys/param.sfo", "rb", false);
-        if(!param_sfo) {
-            printf("Failed to find <%s>\n", (path + "/sce_sys/param.sfo").c_str());
-            return;
-        }
         
-        u8* sfo_data = new u8[param_sfo->size() + 1];
-        param_sfo->read(sfo_data, param_sfo->size());
-        sfo_data[param_sfo->size() + 1] = 0;
-        delete param_sfo;
+        u8* sfo = contents(device, path + "/sce_sys/param.sfo", "rb");
+        if(!sfo) return;
+        getSfoString(sfo, "TITLE", app->title, 32);
+        getSfoString(sfo, "TITLE_ID", app->game_id, 16);
+        delete [] sfo;
         
-        getSfoString(sfo_data, "TITLE", app->title, 32);
-        getSfoString(sfo_data, "TITLE_ID", app->game_id, 16);
-        delete [] sfo_data;
-        
-        File* template_xml = device->open_file(path + "/sce_sys/livearea/contents/template.xml", "r", false);
-        if(template_xml) {
-            bool found_bg = false;
-            bool found_icon = false;
-            while(!template_xml->end() && !(found_bg && found_icon)) {
-                string line = template_xml->read_line();
-                auto idx = line.find("image");
-                if(idx != string::npos && !found_bg) {
-                    // hack to get the first image filename, who knows if it works
-                    // universally... If not I'll need a dang xml parser.
-                    u16 idx0 = line.find_first_of(">");
-                    u16 idx1 = idx0;
-                    for(;idx1 < line.length() - 1;idx1++) {
-                        if(line[idx1 + 1] == '<') break;
-                    }
-                    string bg = path + "/sce_sys/livearea/contents/" + line.substr(idx0 + 1, idx1 - idx0);
-                    memcpy(app->background_path, bg.c_str(), bg.length());
-                    found_bg = true;
+        u16 xml_len = 0;
+        u8* xml = contents(device, path + "/sce_sys/livearea/contents/template.xml", "r", &xml_len);
+        if(xml) {
+            LIBXML_TEST_VERSION
+            xmlDocPtr document = xmlReadMemory((CString)xml, xml_len, "none.xml", NULL, 0);
+            if(document) {
+                xmlNode* root = xmlDocGetRootElement(document);
+                xmlNode* livearea = find(root, "livearea");
+                xmlNode* livearea_background = find(livearea, "livearea-background");
+                xmlNode* gate = find(livearea, "gate");
+                xmlNode* startup_image = find(gate, "startup-image");
+                xmlNode* background_image = find(livearea_background, "image");
+                
+                if(background_image) {
+                    string img_path = path + "/sce_sys/livearea/contents/" + string((CString)background_image->children->content);
+                    memcpy(app->background_path, img_path.c_str(), img_path.length());
+                    app->has_bg = true;
                 }
-                idx = line.find("startup-image");
-                if(idx != string::npos && !found_icon) {
-                    // hack to get the first image filename, who knows if it works
-                    // universally... If not I'll need a dang xml parser.
-                    u16 idx0 = line.find_first_of(">");
-                    u16 idx1 = idx0;
-                    for(;idx1 < line.length() - 1;idx1++) {
-                        if(line[idx1 + 1] == '<') break;
-                    }
-                    string icon_path = path + "/sce_sys/livearea/contents/" + line.substr(idx0 + 1, idx1 - idx0);
-                    memcpy(app->icon_path, icon_path.c_str(), icon_path.length());
-                    found_icon = true;
+                
+                if(startup_image) {
+                    string img_path = path + "/sce_sys/livearea/contents/" + string((CString)startup_image->children->content);
+                    memcpy(app->icon_path, img_path.c_str(), img_path.length());
+                    app->has_icon = true;
                 }
             }
+            xmlFreeDoc(document);
+            xmlCleanupParser();
+            delete [] xml;
         }
         
         printf("id: %s, title: %s, bg: %s, icon: %s\n", app->game_id, app->title, app->background_path, app->icon_path);
+        app->valid = true;
     }
 };

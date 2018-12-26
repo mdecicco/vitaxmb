@@ -3,5 +3,5 @@
 namespace v {
     class Device;
     class GxmTexture;
-    GxmTexture* load_png (const char* filename, Device* ctx);
+    GxmTexture* load_png (const char* filename, Device* ctx, bool relative);
 };

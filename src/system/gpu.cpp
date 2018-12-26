@@ -300,8 +300,8 @@ namespace v {
             }
         }
     }
-    GxmShader* DeviceGpu::load_shader (const char* vertex, const char* fragment, u32 vertexSize) {
-        File* fp = m_device->open_file(vertex, "rb");
+    GxmShader* DeviceGpu::load_shader (const char* vertex, const char* fragment, u32 vertexSize, bool relative) {
+        File* fp = m_device->open_file(vertex, "rb", relative);
         if(!fp) return NULL;
         
         u8* vertData = new u8[fp->size() + 1];
@@ -310,7 +310,7 @@ namespace v {
         delete fp;
         printf("Loaded %s (0x%X, %d bytes)\n", vertex, vertData, fp->size());
         
-        fp = m_device->open_file(fragment, "rb");
+        fp = m_device->open_file(fragment, "rb", relative);
         if(!fp) { delete [] vertData; return NULL; }
         
         u8* fragData = new u8[fp->size() + 1];
@@ -324,14 +324,14 @@ namespace v {
         
         return s;
     }
-    GxmTexture* DeviceGpu::load_texture (const char* pngFile) {
-        GxmTexture* t = load_png(pngFile, m_device);
+    GxmTexture* DeviceGpu::load_texture (const char* pngFile, bool relative) {
+        GxmTexture* t = load_png(pngFile, m_device, relative);
         if(t) printf("Loaded %s\n", pngFile);
         else printf("Failed to load %s\n", pngFile);
         return t;
     }
-    GxmFont* DeviceGpu::load_font (const char* ttfFile, u32 height, float smoothingBaseValue, float smoothingRadius) {
-          GxmFont* f = new GxmFont(ttfFile, height, m_freetype, smoothingBaseValue, smoothingRadius, this);
+    GxmFont* DeviceGpu::load_font (const char* ttfFile, u32 height, float smoothingBaseValue, float smoothingRadius, bool relative) {
+          GxmFont* f = new GxmFont(ttfFile, height, m_freetype, smoothingBaseValue, smoothingRadius, this, relative);
           if(f->bad()) {
               delete f;
               return NULL;

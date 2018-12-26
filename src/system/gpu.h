@@ -67,9 +67,9 @@ namespace v {
             Device* device () const { return m_device; }
             GxmShaderPatcher* patcher () { return m_patcher; }
             GxmContext* context () { return m_context; }
-            GxmShader* load_shader (const char* vert, const char* frag, u32 vertexSize);
-            GxmTexture* load_texture (const char* pngFile);
-            GxmFont* load_font(const char* ttfFile, u32 height, float smoothingBaseValue = 0.506165f, float smoothingRadius = 0.029744f);
+            GxmShader* load_shader (const char* vert, const char* frag, u32 vertexSize, bool relative = true);
+            GxmTexture* load_texture (const char* pngFile, bool relative = true);
+            GxmFont* load_font(const char* ttfFile, u32 height, float smoothingBaseValue = 0.506165f, float smoothingRadius = 0.029744f, bool relative = true);
             
         protected:
             glm::vec4 m_clearColor;

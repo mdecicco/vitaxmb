@@ -2,6 +2,10 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <common/types.h>
+#include <string>
+#include <unordered_map>
+
+#define GLYPH_ATLAS_SIZE 512
 
 namespace v {
     class GxmTexture;
@@ -17,6 +21,14 @@ namespace v {
         vec4 color;
     } fontVertex;
     
+    typedef struct GlyphData {
+        u32 charcode;
+        vec4 coords; // xy = top left uv, zw = bottom right uv
+        vec2 offset;
+        vec2 dimensions;
+        vec2 advance;
+    } GlyphData;
+    
     //   0 = offset on the x axis by 0% of the rendered text's length (so don't move it at all)
     // 0.5 = offset on the x axis by -50% of the rendered text's length (so it's centered)
     //  -1 = offset on the x axis by -100% of the rendered text's length (get it?)
@@ -29,14 +41,14 @@ namespace v {
     
     class GxmFont {
         public:
-            GxmFont (const char* font, u32 height, FT_Library freetype, float smoothingBaseValue, float smoothingRadius, DeviceGpu* gpu);
+            GxmFont (const char* font, u32 height, FT_Library freetype, float smoothingBaseValue, float smoothingRadius, DeviceGpu* gpu, bool relativePath = true);
             ~GxmFont ();
             
             bool bad () const { return m_bad; }
             GxmTexture* texture () const { return m_texture; }
             void shader (GxmShader* shader);
             void smoothing(float smoothingBaseValue, float smoothingRadius) { m_smoothingParams = vec2(smoothingBaseValue, smoothingRadius); }
-            void print (const vec2& pos, const char* text, const vec4& color, const vec2& alignment = TEXT_ALIGN_LEFT);
+            void print (const vec2& pos, const std::string& text, const vec4& color, const vec2& alignment = TEXT_ALIGN_LEFT);
 
         protected:
             u16 m_height;
@@ -47,10 +59,7 @@ namespace v {
             GxmTexture* m_texture;
             GxmShader* m_shader;
             DeviceGpu* m_gpu;
-            vec4 m_glyphs[256];
-            vec2 m_glyphOffsets[256];
-            vec2 m_glyphDimensions[256];
-            vec2 m_glyphAdvance[256];
+            std::unordered_map<u32, GlyphData> m_glyphs;
             vec2 m_smoothingParams;
             GxmBuffer* m_vertices;
             GxmBuffer* m_indices;

@@ -8,7 +8,8 @@ using namespace std;
 
 namespace v {
     File::File (const char* filename, const char* mode, Device* dev, bool relative) :
-        m_fp(NULL), m_filename(filename), m_mode(mode), m_dev(dev), m_offset(0)
+        m_fp(NULL), m_filename(filename), m_mode(mode), m_dev(dev), m_offset(0),
+        m_size(0)
     {
         if (relative) m_filename = string("ux0:/app/") + m_dev->game_id() + "/" + filename;
         else m_filename = filename;
@@ -18,7 +19,7 @@ namespace v {
         else {
             i32 err = sceIoGetstat(m_filename.c_str(), &m_stat);
             if(err < 0) {
-                printf("Failed to call sceIoGetstat for file <%s>.\n", m_filename.c_str());
+                printf("Failed to call sceIoGetstat for file <%s>\n", m_filename.c_str());
                 fseek(m_fp, 0, SEEK_END);
                 m_size = ftell(m_fp);
                 fseek(m_fp, 0, SEEK_SET);
@@ -33,7 +34,31 @@ namespace v {
             printf("File <%s> closed.\n", m_filename.c_str());
         }
     }
-    
+    bool File::clear (bool enableWrite) {
+        if(m_fp) {
+            fclose(m_fp);
+            m_fp = fopen(m_filename.c_str(), "w");
+            if(!m_fp) {
+                m_fp = fopen(m_filename.c_str(), m_mode.c_str());
+                if(!m_fp) printf("File <%s> was not cleared and could not be reopened!\n", m_filename.c_str());
+                return false;
+            }
+            if(!enableWrite) {
+                fclose(m_fp);
+                m_fp = fopen(m_filename.c_str(), m_mode.c_str());
+                if(!m_fp) printf("File <%s> was cleared and could not be reopened!\n", m_filename.c_str());
+            }
+            
+            i32 err = sceIoGetstat(m_filename.c_str(), &m_stat);
+            if(err < 0) {
+                printf("Failed to call sceIoGetstat for file <%s>\n", m_filename.c_str());
+                fseek(m_fp, 0, SEEK_END);
+                m_size = ftell(m_fp);
+                fseek(m_fp, 0, SEEK_SET);
+                m_offset = 0;
+            } else m_size = m_stat.st_size;
+        }
+    }
     void File::offset (SceOff offset) {
         fseek(m_fp, offset, SEEK_SET);
         m_offset = offset;

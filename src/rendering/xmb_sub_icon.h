@@ -61,9 +61,9 @@ namespace v {
             Interpolator<f32> m_offsetY;
             XmbIcon* m_icon;
             GxmShader* m_shader;
-            std::string m_text;
-            std::string m_description;
-            std::string m_setting;
+            string m_text;
+            string m_description;
+            string m_setting;
             XmbSubIcon* m_parent;
             XmbCol* m_xmbCol;
             theme_data* m_theme;

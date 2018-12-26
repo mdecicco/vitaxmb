@@ -8,7 +8,9 @@
 
 
 namespace v {
-    XmbOption::XmbOption (u8 index, XmbSubIcon* parent, const string& label, const json& value, const string& type, const json& self, theme_data* theme, Xmb* xmb, DeviceGpu* gpu) :
+    XmbOption::XmbOption (u8 index, XmbSubIcon* parent, const string& label,
+                        const json& value, const string& type, const json& self,
+                        theme_data* theme, Xmb* xmb, DeviceGpu* gpu) :
         m_idx(index), m_parent(parent), m_text(label), m_value(value),
         m_theme(theme), m_gpu(gpu), m_type(type), m_xmb(xmb), m_changed(false),
         m_leftStickIncrement(5.0f), m_rightStickIncrement(1.0f),
@@ -153,7 +155,7 @@ namespace v {
             }
         }
     }
-    string XmbOption::value_str () const {
+    std::string XmbOption::value_str () const {
         switch(m_typeInt) {
             case OPTION_TYPE_LIST_ITEM: return m_text;
             case OPTION_TYPE_COLOR: return format("hsl(%0.1f, %0.1f\%, %0.1f\%)", m_hsl.x, m_hsl.y, m_hsl.z);

@@ -13,6 +13,22 @@
 #include <xmb_settings.h>
 #include <xmb_sources.h>
 
+const vector<string> explode(const string& s, const char& c) {
+    string buffer;
+    vector<string> v;
+
+    for(auto n:s) {
+        if(n != c) buffer += n;
+        else if(buffer.length() != 0) {
+            v.push_back(buffer);
+            buffer = "";
+        }
+    }
+    if(buffer.length() != 0) v.push_back(buffer);
+
+    return v;
+}
+
 namespace v {
     Xmb::Xmb (DeviceGpu* gpu) : m_gpu(gpu), m_colIdx(0), m_offsetX(0.0f, 0.0f, interpolate::easeOutCubic) {
         m_bgShader = gpu->load_shader("resources/shaders/xmb_back_v.gxp", "resources/shaders/xmb_back_f.gxp", sizeof(f32) * 2);
@@ -85,6 +101,7 @@ namespace v {
                     }
                 }
             }
+            m_currentTheme = themeName;
         }
     }
     void Xmb::recursive_read_theme(const string& path, const json& value) {
@@ -324,7 +341,39 @@ namespace v {
         d.theme = &m_theme;
         d.from = last;
         d.to = value;
-        return (callback->second.changed)(&d);
+        json ret = (callback->second.changed)(&d);
+        
+        // save the theme setting
+        json& config = m_config->data();
+        if(config.value<json>("themes", NULL).is_array()) {
+            json& themes = config["themes"];
+            for(auto it = themes.begin();it != themes.end();it++) {
+                json& theme = *it;
+                if(theme.value("name", "") == m_currentTheme) {
+                    vector<string> path = explode(settingPath, '.');
+                    json* node = &theme;
+                    
+                    // index 0 will always be "theme"
+                    for(u8 i = 1;i < path.size();i++) {
+                        if(i == path.size() - 1) {
+                            printf("Updated config.\n");
+                            (*node)[path[i]] = ret;
+                            break;
+                        }
+                        
+                        if(!node->value<json>(path[i].c_str(), NULL).is_null()) {
+                            node = &(*node)[path[i]];
+                        } else {
+                            printf("Could not find JSON node at path near '%s'!\n", path[i].c_str());
+                            node = NULL;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return ret;
     }
     void Xmb::register_icon_source(const string& sourcePath, IconSourceCallback sourceCallback) {
         auto existing = m_sources.find(sourcePath);

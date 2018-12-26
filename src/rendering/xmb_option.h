@@ -20,7 +20,9 @@ namespace v {
     struct theme_data;
     class XmbOption : public InputReceiver {
         public:
-            XmbOption (u8 index, XmbSubIcon* parent, const string& label, const json& value, const string& type, const json& self, theme_data* theme, Xmb* xmb, DeviceGpu* gpu);
+            XmbOption (u8 index, XmbSubIcon* parent, const string& label,
+                       const json& value, const string& type, const json& self,
+                       theme_data* theme, Xmb* xmb, DeviceGpu* gpu);
             ~XmbOption ();
             
             void became_visible ();
@@ -30,8 +32,8 @@ namespace v {
             
             u8 type () const { return m_typeInt; }
             
-            const string& text () const { return m_text; }
-            string value_str () const;
+            const std::string& text () const { return m_text; }
+            std::string value_str () const;
             const json& value () const { return m_value; }
             void value (const json& value) { m_value = value; }
             

@@ -21,7 +21,7 @@ set(VITA_TITLEID  "SHELL6969")
 SET(PSVITAIP 192.168.1.16)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-permissive -Wno-psabi -Wno-pointer-arith")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -Wno-psabi -Wno-pointer-arith")
 set(PSP2CGC /usr/local/vitasdk/bin/psp2cgc.exe)
 
 include_directories(
@@ -62,6 +62,7 @@ file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     src/system/*.cpp
     src/common/*.cpp
     src/tools/*.cpp
+    src/tools/*.c
     src/rendering/*.cpp
 )
 
@@ -86,6 +87,7 @@ target_link_libraries(${SHORT_NAME}
     SceShellSvc_stub
     SceSysmodule_stub
     vitaGL
+    xml2
     z
 )
 

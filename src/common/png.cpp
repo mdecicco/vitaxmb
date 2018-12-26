@@ -94,10 +94,10 @@ namespace v {
         return tex;
     }
 
-    GxmTexture* load_png (const char* filename, Device* device) {
+    GxmTexture* load_png (const char* filename, Device* device, bool relative) {
         png_byte pngsig[PNG_SIGSIZE];
         
-        File* fp = device->open_file(filename, "rb");
+        File* fp = device->open_file(filename, "rb", relative);
         if (!fp) {
             return NULL;
         }

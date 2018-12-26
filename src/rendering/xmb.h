@@ -127,11 +127,13 @@ namespace v {
         
         protected:
             void recursive_read_theme(const string& path, const json& value);
+            
             // non-persistent state
             i8 m_colIdx;
             Interpolator<f32> m_offsetX;
             
             // persistent state
+            string m_currentTheme;
             theme_data m_theme;
             
             // renderables

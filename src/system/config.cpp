@@ -8,7 +8,8 @@ namespace v {
         string filename = string("resources/config/") + name + ".json";
         m_fp = dev->open_file(filename.c_str(), "rw");
         if(!m_fp && create) {
-            m_fp = dev->open_file(filename.c_str(), "w+");
+            m_fp = dev->open_file(filename.c_str(), "w");
+            printf("Config file <%s> created\n", filename.c_str());
         } else if(m_fp) {
             char* contents = new char[m_fp->size() + 1];
             memset(contents, 0, m_fp->size() + 1);
@@ -35,7 +36,7 @@ namespace v {
     }
     void ConfigFile::sync () {
         if (m_fp) {
-            m_fp->offset(0);
+            m_fp->clear(true);
             string data = m_data.dump(4);
             m_fp->write(data.c_str(), data.length());
         }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <cwchar>
 
 namespace v {
     typedef void*               Ptr;
@@ -12,12 +13,12 @@ namespace v {
 
     typedef uint8_t             u8;
     typedef uint16_t            u16;
-    typedef unsigned int        u32;
+    typedef uint32_t            u32;
     typedef uint64_t            u64;
 
     typedef signed char         s8;
     typedef signed short        s16;
-    typedef signed int          s32;
+    typedef signed long         s32;
     typedef signed long long    s64;
 
     typedef float               f32;
@@ -25,7 +26,6 @@ namespace v {
 
     typedef char                Byte;
     typedef unsigned char       uByte;
-
     typedef const char*         Literal;
     typedef char*               CString;
     typedef f32                 Scalar;
