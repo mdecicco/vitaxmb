@@ -1,13 +1,14 @@
 # vitaxmb
-![Alt text](https://i.imgur.com/ApEJoB4.png)
+![Alt text](https://i.imgur.com/8N7mexc.png)
 A more visually appealing shell for the PS Vita
 
 # Notes
 This doesn't do anything useful yet
 
 # Currently working on
-- Rendering UTF-8 characters
 - Rendering list of installed applications by partition
+- Finding another algorithm for generating SDF bitmaps
+- Adding padding between font glyphs to prevent stray pixels in text
 
 # Features
 - Customizable XMB options
