@@ -1,5 +1,5 @@
 # vitaxmb
-![Alt text](https://i.imgur.com/8N7mexc.png)
+![Alt text](https://i.imgur.com/znWr93l.png)
 A more visually appealing shell for the PS Vita
 
 # Notes
@@ -7,7 +7,7 @@ This doesn't do anything useful yet
 
 # Currently working on
 - Rendering list of installed applications by partition
-- Finding another algorithm for generating SDF bitmaps
+- Fixing bugs with text alignment, packing font glyphs more tightly to allow for more glyphs
 
 # Features
 - Customizable XMB options
